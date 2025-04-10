@@ -1,17 +1,24 @@
 import styles from './Hero.module.css'
-import { motion } from 'framer-motion'
 
 export default function Hero() {
   return (
-    <section className={styles.hero}>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className={styles.content}
-      >
-        <h1>Samuel Kasper</h1>
-        <h2 className="font-mono">Blockchain & Full-Stack Developer</h2>
-      </motion.div>
+    <section id="hero" className={styles.hero}>
+      <div className={`container ${styles.heroContainer}`}>
+        <div className={styles.heroContent}>
+          <h1>Hi, I'm <span>Samuel Kasper</span></h1>
+          <h2 className="font-mono">Blockchain & Full-Stack Developer</h2>
+          <p>Building decentralized applications and scalable web solutions</p>
+          <div className={styles.heroButtons}>
+            <a href="#projects" className="btn btn-primary">View My Work</a>
+            <a href="#contact" className="btn btn-secondary">Contact Me</a>
+          </div>
+        </div>
+        
+        <div className={styles.heroImage}>
+          <div className={styles.glowingOrb}></div>
+          <img src="/profile.jpg" alt="Samuel Kasper" />
+        </div>
+      </div>
     </section>
   )
 }
