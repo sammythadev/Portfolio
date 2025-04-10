@@ -16,7 +16,7 @@ export default function Hero() {
         
         <div className={styles.heroImage}>
           <div className={styles.glowingOrb}></div>
-          <img src="/profile.jpg" alt="Samuel Kasper" />
+          <img src="/profile.jpeg" alt="Samuel Kasper" />
         </div>
       </div>
     </section>
