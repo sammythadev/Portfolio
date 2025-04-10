@@ -1,87 +1,107 @@
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { FaMoon, FaSun, FaBars, FaTimes } from 'react-icons/fa'
-import styles from './Header.module.css'
+import { useState, useEffect } from 'react';
+import { socialLinks } from '../../data/socialLinks.js';
+import styles from './Header.module.css';
 
-const Header = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [darkMode, setDarkMode] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+export default function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      window.scrollY > 10 ? setScrolled(true) : setScrolled(false)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  const navLinks = [
+  const navItems = [
     { name: 'About', href: '#about' },
     { name: 'Skills', href: '#skills' },
     { name: 'Projects', href: '#projects' },
     { name: 'Contact', href: '#contact' }
-  ]
+  ];
 
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
-      <div className="container">
-        <nav className={styles.navbar}>
-          <a href="#" className={styles.logo}>Samuel Kasper</a>
-          
-          <ul className={styles.navLinks}>
-            {navLinks.map((link) => (
-              <li key={link.name}>
+      <div className={`container ${styles.headerContainer}`}>
+        <a href="#" className={styles.logo}>Samuel Kasper</a>
+        
+        <nav className={styles.nav}>
+          <ul className={styles.navList}>
+            {navItems.map((item) => (
+              <li key={item.name}>
                 <a 
-                  href={link.href}
+                  href={item.href} 
                   className={styles.navLink}
+                  onClick={() => setIsMenuOpen(false)}
                 >
-                  {link.name}
+                  {item.name}
                 </a>
               </li>
             ))}
           </ul>
-          
-          <div className={styles.navControls}>
-            <button 
-              onClick={() => setDarkMode(!darkMode)}
-              className={styles.themeToggle}
-            >
-              {darkMode ? <FaSun /> : <FaMoon />}
-            </button>
-            
-            <button 
-              onClick={() => setIsOpen(!isOpen)}
-              className={styles.mobileMenuBtn}
-            >
-              {isOpen ? <FaTimes /> : <FaBars />}
-            </button>
-          </div>
         </nav>
-        
-        {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={styles.mobileMenu}
-          >
-            <nav className={styles.mobileNav}>
-              {navLinks.map((link) => (
+
+        <div className={styles.socialLinks}>
+          {socialLinks.slice(0, 3).map((link) => (
+            <a
+              key={link.name}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.socialLink}
+              aria-label={link.name}
+            >
+              <i className={`fab fa-${link.icon}`}></i>
+            </a>
+          ))}
+        </div>
+
+        <button 
+          className={styles.menuButton}
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {isMenuOpen ? (
+            <i className="fas fa-times"></i>
+          ) : (
+            <i className="fas fa-bars"></i>
+          )}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className={styles.mobileMenu}>
+          <ul className={styles.mobileNavList}>
+            {navItems.map((item) => (
+              <li key={item.name}>
                 <a 
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
+                  href={item.href} 
                   className={styles.mobileNavLink}
+                  onClick={() => setIsMenuOpen(false)}
                 >
-                  {link.name}
+                  {item.name}
+                </a>
+              </li>
+            ))}
+            <div className={styles.mobileSocialLinks}>
+              {socialLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.mobileSocialLink}
+                  aria-label={link.name}
+                >
+                  <i className={`fab fa-${link.icon}`}></i>
                 </a>
               ))}
-            </nav>
-          </motion.div>
-        )}
-      </div>
+            </div>
+          </ul>
+        </div>
+      )}
     </header>
-  )
+  );
 }
-
-export default Header
