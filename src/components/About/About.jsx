@@ -28,7 +28,7 @@ export default function About() {
           </div>
           
           <div className={styles.aboutImage}>
-            <img src="/about-image.jpg" alt="Samuel Kasper working" />
+            <img src="/about-image.jpghttps://placehold.co/600x400/4d44db/white?text=My+Work" alt="Samuel Kasper working" />
           </div>
         </div>
       </div>

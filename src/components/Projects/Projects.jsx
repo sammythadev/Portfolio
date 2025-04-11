@@ -1,6 +1,5 @@
-import { motion } from 'framer-motion'
-import { projects } from '../../data/projects'
-import styles from './Projects.module.css'
+import { projects } from '../../data/projects.js';
+import styles from './Projects.module.css';
 
 export default function Projects() {
   return (
@@ -9,17 +8,16 @@ export default function Projects() {
         <h2 className="section-title">Featured Projects</h2>
         
         <div className={styles.projectsGrid}>
-          {projects.map((project, index) => (
-            <motion.div
-              key={project.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className={styles.projectCard}
-            >
+          {projects.map((project) => (
+            <div key={project.title} className={styles.projectCard}>
               <div className={styles.projectImage}>
-                <img src={project.image} alt={project.title} />
+                <img 
+                  src={project.image} 
+                  alt={project.title}
+                  onError={(e) => {
+                    e.target.src = `https://placehold.co/600x400/6c63ff/white?text=${encodeURIComponent(project.title)}`;
+                  }}
+                />
               </div>
               <div className={styles.projectInfo}>
                 <h3>{project.title}</h3>
@@ -30,14 +28,28 @@ export default function Projects() {
                   ))}
                 </div>
                 <div className={styles.projectLinks}>
-                  <a href={project.demoUrl} className="btn btn-primary">Live Demo</a>
-                  <a href={project.codeUrl} className="btn btn-secondary">View Code</a>
+                  <a 
+                    href={project.demoUrl} 
+                    className="btn btn-primary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Live Demo
+                  </a>
+                  <a 
+                    href={project.codeUrl} 
+                    className="btn btn-secondary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View Code
+                  </a>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }
