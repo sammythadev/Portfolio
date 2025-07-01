@@ -39,4 +39,15 @@ body{
   
 }
 
-.
+#countdown {
+font-family: 'Arial', 'sans-serif';
+font-size: 2rem;
+color: white;
+background-color: rgba(0, 0, 0, 0.3);
+/*semi-transparent*/
+padding: 20px 30px;
+border-radius: 10px;
+display: inline-block;
+backdrop-filter: blur(40px);
+box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}

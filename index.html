@@ -10,9 +10,16 @@
     <div class="glitch">
     <div id="components">
         <h2>🚧 I'm  Building Something Awesome! 🚧</h2>
-        <p>My site is currently undergoing Development.</p>
+        <p>My World is currently undergoing Development.</p>
         <p>Something cool is coming 😉</p>
         <p>Thank you for your patience , please check back soon!</p>
+    </div>
+
+    <div id="countdown">
+        <span id="days"></span>d :
+        <span id="hours"></span>h :
+        <span id="minutes"></span> m :
+        <span id="seconds"></span> s
     </div>
 
     <div id="footer">
@@ -21,4 +28,39 @@
     </div>
     </div>
 </body>
+<script>
+    const targetDate = new Date('2025-08-01T00:00:00').getTime();
+   function updateCountdown() {
+     const now = new Date().getTime();
+     const gap = targetDate - now;
+
+     if (gap < 0 ) {
+            clearInterval(timer);
+            document.getElementById('countdown').innerHTML="Time's up!";
+            return;
+        };
+
+        
+        const days =  Math.floor(gap / (1000 * 60 *60 *24));
+        const hours = Math.floor((gap % (1000 * 60 * 60 * 24)) / (1000*60*60));
+        const minutes = Math.floor((gap % (1000*60*60))/ (1000 * 60));
+        const seconds = Math.floor((gap % (1000 * 60 )) / 1000);
+
+        document.getElementById('days').textContent = days.toString().padStart(2,'0');
+        
+        document.getElementById('hours').textContent = hours.toString().padStart(2,'0');
+        
+        document.getElementById('minutes').textContent = minutes.toString().padStart(2,'0');
+        
+        document.getElementById('seconds').textContent = seconds.toString().padStart(2,'0');
+   }
+
+   setInterval(updateCountdown, 1000);
+   updateCountdown();//initial call
+       
+
+  
+
+   
+</script>
 </html>
