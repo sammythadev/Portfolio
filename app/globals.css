@@ -1,0 +1,172 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Design tokens are derived from the original stylesheet palette:
+  --primary #6c63ff, --primary-dark #4d44db, --dark #1a1a2e, --light #f8f9fa.
+  Colours are expressed in oklch so Tailwind can apply opacity modifiers.
+*/
+:root {
+  --radius: 0.75rem;
+
+  --background: oklch(0.985 0.003 264);
+  --foreground: oklch(0.21 0.03 274);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.03 274);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.03 274);
+
+  --primary: oklch(0.58 0.22 279);
+  --primary-foreground: oklch(0.99 0.005 264);
+
+  --secondary: oklch(0.96 0.008 264);
+  --secondary-foreground: oklch(0.28 0.04 274);
+
+  --muted: oklch(0.96 0.008 264);
+  --muted-foreground: oklch(0.52 0.02 268);
+
+  --accent: oklch(0.94 0.02 279);
+  --accent-foreground: oklch(0.35 0.12 279);
+
+  --destructive: oklch(0.577 0.245 27.325);
+
+  --border: oklch(0.91 0.006 264);
+  --input: oklch(0.91 0.006 264);
+  --ring: oklch(0.58 0.22 279);
+
+  --surface-muted: oklch(0.975 0.005 264);
+}
+
+.dark {
+  --background: oklch(0.19 0.03 278);
+  --foreground: oklch(0.97 0.005 264);
+
+  --card: oklch(0.23 0.03 278);
+  --card-foreground: oklch(0.97 0.005 264);
+
+  --popover: oklch(0.23 0.03 278);
+  --popover-foreground: oklch(0.97 0.005 264);
+
+  --primary: oklch(0.68 0.19 280);
+  --primary-foreground: oklch(0.19 0.05 279);
+
+  --secondary: oklch(0.27 0.03 278);
+  --secondary-foreground: oklch(0.97 0.005 264);
+
+  --muted: oklch(0.27 0.03 278);
+  --muted-foreground: oklch(0.72 0.02 272);
+
+  --accent: oklch(0.31 0.05 279);
+  --accent-foreground: oklch(0.93 0.03 280);
+
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.68 0.19 280);
+
+  --surface-muted: oklch(0.22 0.03 278);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface-muted: var(--surface-muted);
+
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, monospace;
+
+  /* Tinted shadows keep a single consistent light source. */
+  --shadow-soft: 0 5px 15px -5px oklch(0.3 0.06 279 / 0.18);
+  --shadow-lift: 0 18px 40px -18px oklch(0.3 0.08 279 / 0.35);
+
+  --animate-pulse-orb: pulse-orb 4s ease-in-out infinite alternate;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Offset anchor targets so the fixed header never covers a heading. */
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Respect reduced-motion across every animated affordance. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .container-page {
+    width: 100%;
+    max-width: var(--container-max, 75rem);
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-align: center;
+    text-wrap: balance;
+  }
+}
+
+@keyframes pulse-orb {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.9;
+  }
+}
