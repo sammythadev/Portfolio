@@ -1,0 +1,179 @@
+
+────────────────────────────────────────────────────────────────────────
+first viewport @ desktop (1440x900)
+────────────────────────────────────────────────────────────────────────
+elements with text inside the fold: 57
+      0px    14px  <header> Samuel KasperSamuel KasperSamuel KasperOpen to workProjectsStackPlaygr
+     20px    14px  <div> Samuel KasperSamuel KasperSamuel KasperOpen to work
+     15px    13px  <a> Samuel KasperSamuel KasperSamuel Kasper
+     21px    13px  <span> Samuel KasperSamuel KasperSamuel Kasper
+     22px    13px  <span> Samuel KasperSamuel Kasper
+     21px    13px  <span> Samuel KasperSamuel Kasper
+     22px    13px  <span> S
+     22px    13px  <span> a
+     22px    13px  <span> m
+     22px    13px  <span> u
+     22px    13px  <span> e
+     22px    13px  <span> l
+     22px    13px  <span> K
+     22px    13px  <span> a
+     22px    13px  <span> s
+     22px    13px  <span> p
+     22px    13px  <span> e
+     22px    13px  <span> r
+     20px    14px  <div> Open to work
+     23px    11px  <span> Open to work
+     12px    14px  <div> ProjectsStackPlaygroundTimelineSystem
+     12px    14px  <div> ProjectsStackPlaygroundTimelineSystem
+     12px    14px  <nav> ProjectsStackPlaygroundTimelineSystem
+     12px    14px  <li> Projects
+     12px    14px  <a> Projects
+     12px    14px  <li> Stack
+     12px    14px  <a> Stack
+     12px    14px  <li> Playground
+     12px    14px  <a> Playground
+     12px    14px  <li> Timeline
+     12px    14px  <a> Timeline
+     12px    14px  <li> System
+     12px    14px  <a> System
+     15px    14px  <div> SearchCmd+K
+     23px    11px  <span> Search
+     20px    10px  <span> Cmd+K
+     63px    14px  <div> Building backend systems, AI infrastructure, and the pipelines that sh
+    497px    44px  <h1> Building backend systems, AI infrastructure, and the pipelines that sh
+    613px    16px  <p> Designing typed service APIs, event-driven architectures, and LLM-back
+    685px    14px  <div> View WorkCopy Email
+
+────────────────────────────────────────────────────────────────────────
+first viewport @ laptop (1280x800)
+────────────────────────────────────────────────────────────────────────
+elements with text inside the fold: 54
+      0px    14px  <header> Samuel KasperSamuel KasperSamuel KasperOpen to workProjectsStackPlaygr
+     20px    14px  <div> Samuel KasperSamuel KasperSamuel KasperOpen to work
+     15px    13px  <a> Samuel KasperSamuel KasperSamuel Kasper
+     21px    13px  <span> Samuel KasperSamuel KasperSamuel Kasper
+     22px    13px  <span> Samuel KasperSamuel Kasper
+     21px    13px  <span> Samuel KasperSamuel Kasper
+     22px    13px  <span> S
+     22px    13px  <span> a
+     22px    13px  <span> m
+     22px    13px  <span> u
+     22px    13px  <span> e
+     22px    13px  <span> l
+     22px    13px  <span> K
+     22px    13px  <span> a
+     22px    13px  <span> s
+     22px    13px  <span> p
+     22px    13px  <span> e
+     22px    13px  <span> r
+     20px    14px  <div> Open to work
+     23px    11px  <span> Open to work
+     12px    14px  <div> ProjectsStackPlaygroundTimelineSystem
+     12px    14px  <div> ProjectsStackPlaygroundTimelineSystem
+     12px    14px  <nav> ProjectsStackPlaygroundTimelineSystem
+     12px    14px  <li> Projects
+     12px    14px  <a> Projects
+     12px    14px  <li> Stack
+     12px    14px  <a> Stack
+     12px    14px  <li> Playground
+     12px    14px  <a> Playground
+     12px    14px  <li> Timeline
+     12px    14px  <a> Timeline
+     12px    14px  <li> System
+     12px    14px  <a> System
+     15px    14px  <div> SearchCmd+K
+     23px    11px  <span> Search
+     20px    10px  <span> Cmd+K
+     63px    14px  <div> Building backend systems, AI infrastructure, and the pipelines that sh
+    419px    44px  <h1> Building backend systems, AI infrastructure, and the pipelines that sh
+    535px    16px  <p> Designing typed service APIs, event-driven architectures, and LLM-back
+    607px    14px  <div> View WorkCopy Email
+
+────────────────────────────────────────────────────────────────────────
+first viewport @ tablet (834x1112)
+────────────────────────────────────────────────────────────────────────
+elements with text inside the fold: 60
+      0px    14px  <header> Samuel KasperSamuel KasperSamuel KasperOpen to workProjectsStackPlaygr
+     12px    14px  <div> Samuel KasperSamuel KasperSamuel KasperOpen to work
+     14px    13px  <a> Samuel KasperSamuel KasperSamuel Kasper
+     20px    13px  <span> Samuel KasperSamuel KasperSamuel Kasper
+     41px    13px  <span> Samuel KasperSamuel Kasper
+     20px    13px  <span> Samuel KasperSamuel Kasper
+     21px    13px  <span> S
+     21px    13px  <span> a
+     21px    13px  <span> m
+     21px    13px  <span> u
+     21px    13px  <span> e
+     21px    13px  <span> l
+     41px    13px  <span> K
+     41px    13px  <span> a
+     41px    13px  <span> s
+     41px    13px  <span> p
+     41px    13px  <span> e
+     41px    13px  <span> r
+     12px    14px  <div> Open to work
+     15px    11px  <span> Open to work
+     21px    14px  <div> ProjectsStackPlaygroundTimelineSystem
+     21px    14px  <div> ProjectsStackPlaygroundTimelineSystem
+     21px    14px  <nav> ProjectsStackPlaygroundTimelineSystem
+     21px    14px  <li> Projects
+     21px    14px  <a> Projects
+     21px    14px  <li> Stack
+     21px    14px  <a> Stack
+     21px    14px  <li> Playground
+     21px    14px  <a> Playground
+     21px    14px  <li> Timeline
+     21px    14px  <a> Timeline
+     21px    14px  <li> System
+     21px    14px  <a> System
+     24px    14px  <div> SearchCmd+K
+     32px    11px  <span> Search
+     29px    10px  <span> Cmd+K
+     81px    14px  <div> Building backend systems, AI infrastructure, and the pipelines that sh
+    640px  41.352px  <h1> Building backend systems, AI infrastructure, and the pipelines that sh
+    796px    16px  <p> Designing typed service APIs, event-driven architectures, and LLM-back
+    868px    14px  <div> View WorkCopy Email
+
+────────────────────────────────────────────────────────────────────────
+first viewport @ phone (390x844)
+────────────────────────────────────────────────────────────────────────
+elements with text inside the fold: 37
+      0px    14px  <header> Samuel KasperSamuel KasperSamuel KasperOpen to workProjectsStackPlaygr
+     22px    14px  <div> Samuel KasperSamuel KasperSamuel KasperOpen to work
+     16px    13px  <a> Samuel KasperSamuel KasperSamuel Kasper
+     22px    13px  <span> Samuel KasperSamuel KasperSamuel Kasper
+     23px    13px  <span> Samuel KasperSamuel Kasper
+     22px    13px  <span> Samuel KasperSamuel Kasper
+     23px    13px  <span> S
+     23px    13px  <span> a
+     23px    13px  <span> m
+     23px    13px  <span> u
+     23px    13px  <span> e
+     23px    13px  <span> l
+     23px    13px  <span> K
+     23px    13px  <span> a
+     23px    13px  <span> s
+     23px    13px  <span> p
+     23px    13px  <span> e
+     23px    13px  <span> r
+     12px    14px  <div> Menu
+     12px    14px  <button> Menu
+     24px    11px  <span> Menu
+     19px    14px  <div> SearchCmd+K
+     24px    11px  <span> Search
+     65px    14px  <div> Building backend systems, AI infrastructure, and the pipelines that sh
+    453px    30px  <h1> Building backend systems, AI infrastructure, and the pipelines that sh
+    601px  14.56px  <p> Designing typed service APIs, event-driven architectures, and LLM-back
+    712px    14px  <div> View WorkCopy Email
+    716px    13px  <a> View Work
+    717px    13px  <button> Copy Email
+    724px    13px  <span> Copy Email
+    807px    14px  <section> Capability Manifeststack://sammythadev 4 layers[BACKEND]NestJS service
+    815px    12px  <div> Capability Manifeststack://sammythadev 4 layers[BACKEND]NestJS service
+    832px    12px  <div> Capability Manifeststack://sammythadev 4 layers
+    832px    12px  <div> Capability Manifest
+    832px    13px  <h2> Capability Manifest
+    834px    11px  <div> stack://sammythadev 4 layers
+    834px    11px  <span> 4 layers
+
+wrote screenshots to scripts/audit/shots/design/after/

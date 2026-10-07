@@ -1,0 +1,130 @@
+
+────────────────────────────────────────────────────────────────────────
+video event log (viewport=desktop, url=/)
+────────────────────────────────────────────────────────────────────────
+  1342ms  MOUNTED         
+  1342ms  volumechange     rs=0 ns=0 t=0 buf=0 paused=true
+  1344ms  emptied          rs=0 ns=3 t=0 buf=0 paused=true
+  1346ms  loadstart        rs=0 ns=2 t=0 buf=0 paused=true
+  1351ms  suspend          rs=0 ns=1 t=0 buf=0 paused=true
+  1361ms  suspend          rs=0 ns=1 t=0 buf=0 paused=true
+  1368ms  durationchange   rs=4 ns=1 t=0 buf=10 paused=true
+  1370ms  loadedmetadata   rs=4 ns=1 t=0 buf=10 paused=true
+  1370ms  loadeddata       rs=4 ns=1 t=0 buf=10 paused=true
+  1370ms  canplay          rs=4 ns=1 t=0 buf=10 paused=true
+  1370ms  canplaythrough   rs=4 ns=1 t=0 buf=10 paused=true
+  3348ms  seeking          rs=1 ns=1 t=0 buf=10 paused=false
+  3349ms  play             rs=4 ns=1 t=0.004 buf=10 paused=false
+  3349ms  waiting          rs=4 ns=1 t=0.005 buf=10 paused=false
+  3349ms  seeked           rs=4 ns=1 t=0.005 buf=10 paused=false
+  3349ms  canplay          rs=4 ns=1 t=0.005 buf=10 paused=false
+  3350ms  playing          rs=4 ns=1 t=0.006 buf=10 paused=false
+  3350ms  canplaythrough   rs=4 ns=1 t=0.006 buf=10 paused=false
+  3357ms  REVEALED        
+ 13346ms  pause            rs=4 ns=1 t=10 buf=10 paused=true
+ 13346ms  ended            rs=4 ns=1 t=10 buf=10 paused=true
+ 13351ms  seeking          rs=1 ns=1 t=0 buf=10 paused=false
+ 13351ms  play             rs=1 ns=1 t=0 buf=10 paused=false
+ 13351ms  waiting          rs=1 ns=1 t=0 buf=10 paused=false
+ 13421ms  seeked           rs=4 ns=1 t=0.001 buf=10 paused=false
+ 13421ms  canplay          rs=4 ns=1 t=0.001 buf=10 paused=false
+ 13421ms  playing          rs=4 ns=1 t=0.001 buf=10 paused=false
+ 13421ms  canplaythrough   rs=4 ns=1 t=0.002 buf=10 paused=false
+
+────────────────────────────────────────────────────────────────────────
+media requests
+────────────────────────────────────────────────────────────────────────
+200  305463B  image  /me.jpeg
+206  747899B  media  /me-hero-v1.mp4
+FAILED  ?B  undefined  http://localhost:3000/me-hero-v1.mp4
+304  ?B  media  /me-hero-v1.mp4
+perf: /me-hero-v1.mp4  start=1677ms end=1747ms  transfer=300B encoded=0B
+perf: /me-hero-v1.mp4  start=3676ms end=3683ms  transfer=27303B encoded=27003B
+
+────────────────────────────────────────────────────────────────────────
+state timeline (only changes shown)
+────────────────────────────────────────────────────────────────────────
+   254ms  {"t":1498,"exists":false,"readyState":-1,"networkState":-1,"buffered":0,"paused":null,"shown":null,"currentTime":null}
+   507ms  {"t":1751,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":true,"shown":false,"currentTime":0}
+   761ms  {"t":2005,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":true,"shown":false,"currentTime":0}
+  1017ms  {"t":2260,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":true,"shown":false,"currentTime":0}
+  1270ms  {"t":2514,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":true,"shown":false,"currentTime":0}
+  1524ms  {"t":2768,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":true,"shown":false,"currentTime":0}
+  1777ms  {"t":3021,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":true,"shown":false,"currentTime":0}
+  2029ms  {"t":3273,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":true,"shown":false,"currentTime":0}
+  2284ms  {"t":3527,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":true,"shown":false,"currentTime":0}
+  2543ms  {"t":3784,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.11}
+  2802ms  {"t":4043,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.37}
+  3054ms  {"t":4298,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.62}
+  3309ms  {"t":4552,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.88}
+  3565ms  {"t":4807,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.13}
+  3824ms  {"t":5066,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.39}
+  4077ms  {"t":5322,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.65}
+  4333ms  {"t":5576,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.9}
+  4586ms  {"t":5830,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":2.15}
+  4841ms  {"t":6083,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":2.41}
+  5094ms  {"t":6338,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":2.66}
+  5347ms  {"t":6591,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":2.92}
+  5599ms  {"t":6844,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":3.17}
+  5853ms  {"t":7097,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":3.42}
+  6108ms  {"t":7351,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":3.68}
+  6362ms  {"t":7605,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":3.93}
+  6615ms  {"t":7859,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":4.18}
+  6867ms  {"t":8111,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":4.44}
+  7120ms  {"t":8364,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":4.69}
+  7374ms  {"t":8617,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":4.94}
+  7627ms  {"t":8871,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":5.2}
+  7881ms  {"t":9125,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":5.45}
+  8134ms  {"t":9378,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":5.7}
+  8389ms  {"t":9632,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":5.96}
+  8643ms  {"t":9886,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":6.21}
+  8895ms  {"t":10140,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":6.46}
+  9150ms  {"t":10394,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":6.72}
+  9403ms  {"t":10647,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":6.97}
+  9661ms  {"t":10904,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":7.23}
+  9918ms  {"t":11161,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":7.49}
+ 10172ms  {"t":11415,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":7.74}
+ 10430ms  {"t":11670,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":7.99}
+ 10682ms  {"t":11926,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":8.25}
+ 10935ms  {"t":12179,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":8.5}
+ 11190ms  {"t":12433,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":8.76}
+ 11447ms  {"t":12691,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":9.02}
+ 11699ms  {"t":12943,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":9.27}
+ 11951ms  {"t":13195,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":9.52}
+ 12207ms  {"t":13449,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":9.77}
+ 12462ms  {"t":13705,"exists":true,"readyState":1,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0}
+ 12727ms  {"t":13962,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.21}
+ 12983ms  {"t":14225,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.47}
+ 13236ms  {"t":14479,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.73}
+ 13494ms  {"t":14734,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.98}
+ 13751ms  {"t":14992,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.24}
+ 14003ms  {"t":15247,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.5}
+
+────────────────────────────────────────────────────────────────────────
+final DOM state
+────────────────────────────────────────────────────────────────────────
+[
+  {
+    "src": "/me-hero-v1.mp4",
+    "preload": "none",
+    "muted": true,
+    "readyState": 4,
+    "networkState": 1,
+    "paused": false,
+    "currentTime": 1.499,
+    "duration": 10,
+    "bufferedEnd": 10,
+    "dataShown": true,
+    "opacity": "1",
+    "display": "block",
+    "loop": false,
+    "error": null,
+    "inDom": true
+  }
+]
+<video> elements mounted during the run: 1
+
+────────────────────────────────────────────────────────────────────────
+console errors
+────────────────────────────────────────────────────────────────────────
+none

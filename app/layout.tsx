@@ -1,86 +1,70 @@
 import type { Metadata, Viewport } from "next";
-import { Poppins, Space_Mono } from "next/font/google";
-
-import { siteConfig } from "@/data/site";
+import { Geist, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
 
-const poppins = Poppins({
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
   display: "swap",
 });
 
-const spaceMono = Space_Mono({
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-space-mono",
   display: "swap",
 });
+
+const SITE_URL = "https://sammykasper.dev";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: {
-    default: `${siteConfig.name} — ${siteConfig.role}`,
-    template: `%s | ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
+  metadataBase: new URL(SITE_URL),
+  title: "Samuel Kasper, Backend, DevOps & AI Infrastructure",
+  description:
+    "Software engineer building backend systems, DevOps pipelines, AI infrastructure and reliability tooling. NestJS, Express, Docker, Kubernetes, Kafka, Postgres and LLM agent systems.",
   keywords: [
     "Samuel Kasper",
-    "Blockchain Engineer",
-    "Full-Stack Developer",
-    "Solidity",
-    "Web3",
-    "Next.js",
-    "React",
-    "Portfolio",
+    "Backend Engineer",
+    "DevOps",
+    "AI Engineer",
+    "SRE",
+    "NestJS",
+    "Kubernetes",
+    "LLM",
   ],
-  authors: [{ name: siteConfig.name, url: siteConfig.url }],
-  creator: siteConfig.name,
+  authors: [{ name: "Samuel Kasper", url: "https://github.com/sammythadev" }],
+  creator: "Samuel Kasper",
   openGraph: {
     type: "website",
-    locale: "en_US",
-    url: siteConfig.url,
-    siteName: siteConfig.name,
-    title: `${siteConfig.name} — ${siteConfig.role}`,
-    description: siteConfig.description,
+    url: SITE_URL,
+    siteName: "Samuel Kasper",
+    title: "Samuel Kasper, Backend, DevOps & AI Infrastructure",
+    description:
+      "Backend systems, delivery pipelines, AI infrastructure and reliability tooling.",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — ${siteConfig.role}`,
-    description: siteConfig.description,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+    title: "Samuel Kasper, Backend, DevOps & AI Infrastructure",
+    description:
+      "Backend systems, delivery pipelines, AI infrastructure and reliability tooling.",
   },
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8f9fa" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a1a2e" },
-  ],
+  themeColor: "#000000",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${poppins.variable} ${spaceMono.variable} font-sans antialiased`}
-      >
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-primary-foreground"
-        >
-          Skip to content
-        </a>
+    <html
+      lang="en"
+      className={`dark ${geist.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="bg-background text-on-surface selection:bg-surface-bright selection:text-primary font-body-sm text-[14px] antialiased min-h-dvh flex flex-col justify-between relative">
         {children}
       </body>
     </html>

@@ -1,0 +1,249 @@
+
+────────────────────────────────────────────────────────────────────────
+desktop (1440x900)
+────────────────────────────────────────────────────────────────────────
+page height          : 4184px = 4.6 screens
+horizontal overflow  : no
+interactive in fold  : 9 of 18 on the page
+scroll cue present   : NO
+rounded-full pills   : 12
+infinite animations  : 0
+
+headings (15):
+  H1  Building backend systems, AI infrastructure, and the pipelin
+  H2  Capability Manifest
+  H2  Projects & ArchitectureProjects & ArchitectureProjects & Arc
+  H3  Tutorly, Student-Tutor Matching PlatformTutorly, Student-Tut
+  H3  kubernetes-demokubernetes-demokubernetes-demo
+  H3  Patient Management MicroservicesPatient Management Microserv
+  H3  CIAP, Production NestJS BoilerplateCIAP, Production NestJS B
+  H3  freellmapi, Free-Tier LLM Gatewayfreellmapi, Free-Tier LLM G
+  H2  Stack & Systems MatrixStack & Systems MatrixStack & Systems 
+  H2  Timeline & ArchitectureTimeline & ArchitectureTimeline & Arc
+  H3  Full-Stack Foundations
+  H3  Backend Architecture
+  H3  Distributed Systems & Infrastructure
+  H3  AI Infrastructure
+  H2  System & Practice
+
+sections (6):
+  h=  702  heading=y  id=scroll-hero-trigger name=-  "Building backend systems, AI infrastructure, and t"
+  h=  208  heading=y  id=- name=DIAGNOSTICS  "Capability Manifest"
+  h= 1400  heading=y  id=projects name=PROJECTS  "Projects & ArchitectureProjects & ArchitectureProj"
+  h=  727  heading=y  id=stack name=STACK  "Stack & Systems MatrixStack & Systems MatrixStack "
+  h=  534  heading=y  id=timeline name=TIMELINE  "Timeline & ArchitectureTimeline & ArchitectureTime"
+  h=  202  heading=y  id=system name=SYSTEM  "System & Practice"
+
+nav (5):
+  "Projects" -> #projects  resolves=true  height=38px
+  "Stack" -> #stack  resolves=true  height=38px
+  "Playground" -> /playground  resolves=true  height=38px
+  "Timeline" -> #timeline  resolves=true  height=38px
+  "System" -> #system  resolves=true  height=38px
+
+font sizes in use: {"10":9,"11":121,"12":37,"13":24,"14":5,"15":4,"18":1,"20":4,"44":1}
+
+tap targets under 44px: 18 of 18
+  1 x a 97x32
+  1 x a 81x38
+  1 x a 65x38
+  1 x a 101x38
+  1 x a 82x38
+  1 x a 76x38
+  1 x button 138x31
+  1 x a 121x36
+  1 x button 119x34
+  5 x a 129x30
+  1 x a 40x29
+  1 x a 53x29
+  1 x a 7x29
+  1 x a 46x29
+  UNDER 24px (WCAG 2.5.8 fail): a:X 7x29
+
+contrast failures (0 of 206 text nodes):
+
+────────────────────────────────────────────────────────────────────────
+laptop (1280x800)
+────────────────────────────────────────────────────────────────────────
+page height          : 4106px = 5.1 screens
+horizontal overflow  : no
+interactive in fold  : 9 of 18 on the page
+scroll cue present   : NO
+rounded-full pills   : 12
+infinite animations  : 0
+
+headings (15):
+  H1  Building backend systems, AI infrastructure, and the pipelin
+  H2  Capability Manifest
+  H2  Projects & ArchitectureProjects & ArchitectureProjects & Arc
+  H3  Tutorly, Student-Tutor Matching PlatformTutorly, Student-Tut
+  H3  kubernetes-demokubernetes-demokubernetes-demo
+  H3  Patient Management MicroservicesPatient Management Microserv
+  H3  CIAP, Production NestJS BoilerplateCIAP, Production NestJS B
+  H3  freellmapi, Free-Tier LLM Gatewayfreellmapi, Free-Tier LLM G
+  H2  Stack & Systems MatrixStack & Systems MatrixStack & Systems 
+  H2  Timeline & ArchitectureTimeline & ArchitectureTimeline & Arc
+  H3  Full-Stack Foundations
+  H3  Backend Architecture
+  H3  Distributed Systems & Infrastructure
+  H3  AI Infrastructure
+  H2  System & Practice
+
+sections (6):
+  h=  624  heading=y  id=scroll-hero-trigger name=-  "Building backend systems, AI infrastructure, and t"
+  h=  208  heading=y  id=- name=DIAGNOSTICS  "Capability Manifest"
+  h= 1400  heading=y  id=projects name=PROJECTS  "Projects & ArchitectureProjects & ArchitectureProj"
+  h=  727  heading=y  id=stack name=STACK  "Stack & Systems MatrixStack & Systems MatrixStack "
+  h=  534  heading=y  id=timeline name=TIMELINE  "Timeline & ArchitectureTimeline & ArchitectureTime"
+  h=  202  heading=y  id=system name=SYSTEM  "System & Practice"
+
+nav (5):
+  "Projects" -> #projects  resolves=true  height=38px
+  "Stack" -> #stack  resolves=true  height=38px
+  "Playground" -> /playground  resolves=true  height=38px
+  "Timeline" -> #timeline  resolves=true  height=38px
+  "System" -> #system  resolves=true  height=38px
+
+font sizes in use: {"10":9,"11":121,"12":37,"13":24,"14":5,"15":4,"18":1,"20":4,"44":1}
+
+tap targets under 44px: 18 of 18
+  1 x a 97x32
+  1 x a 81x38
+  1 x a 65x38
+  1 x a 101x38
+  1 x a 82x38
+  1 x a 76x38
+  1 x button 138x31
+  1 x a 121x36
+  1 x button 119x34
+  5 x a 129x30
+  1 x a 40x29
+  1 x a 53x29
+  1 x a 7x29
+  1 x a 46x29
+  UNDER 24px (WCAG 2.5.8 fail): a:X 7x29
+
+contrast failures (0 of 206 text nodes):
+
+────────────────────────────────────────────────────────────────────────
+tablet (834x1112)
+────────────────────────────────────────────────────────────────────────
+page height          : 4730px = 4.3 screens
+horizontal overflow  : no
+interactive in fold  : 10 of 19 on the page
+scroll cue present   : NO
+rounded-full pills   : 13
+infinite animations  : 0
+
+headings (15):
+  H1  Building backend systems, AI infrastructure, and the pipelin
+  H2  Capability Manifest
+  H2  Projects & ArchitectureProjects & ArchitectureProjects & Arc
+  H3  Tutorly, Student-Tutor Matching PlatformTutorly, Student-Tut
+  H3  kubernetes-demokubernetes-demokubernetes-demo
+  H3  Patient Management MicroservicesPatient Management Microserv
+  H3  CIAP, Production NestJS BoilerplateCIAP, Production NestJS B
+  H3  freellmapi, Free-Tier LLM Gatewayfreellmapi, Free-Tier LLM G
+  H2  Stack & Systems MatrixStack & Systems MatrixStack & Systems 
+  H2  Timeline & ArchitectureTimeline & ArchitectureTimeline & Arc
+  H3  Full-Stack Foundations
+  H3  Backend Architecture
+  H3  Distributed Systems & Infrastructure
+  H3  AI Infrastructure
+  H2  System & Practice
+
+sections (6):
+  h=  867  heading=y  id=scroll-hero-trigger name=-  "Building backend systems, AI infrastructure, and t"
+  h=  208  heading=y  id=- name=DIAGNOSTICS  "Capability Manifest"
+  h= 1727  heading=y  id=projects name=PROJECTS  "Projects & ArchitectureProjects & ArchitectureProj"
+  h=  763  heading=y  id=stack name=STACK  "Stack & Systems MatrixStack & Systems MatrixStack "
+  h=  534  heading=y  id=timeline name=TIMELINE  "Timeline & ArchitectureTimeline & ArchitectureTime"
+  h=  202  heading=y  id=system name=SYSTEM  "System & Practice"
+
+nav (5):
+  "Projects" -> #projects  resolves=true  height=38px
+  "Stack" -> #stack  resolves=true  height=38px
+  "Playground" -> /playground  resolves=true  height=38px
+  "Timeline" -> #timeline  resolves=true  height=38px
+  "System" -> #system  resolves=true  height=38px
+
+font sizes in use: {"10":9,"11":121,"12":37,"13":24,"14":5,"15":4,"18":1,"20":4,"41.352":1}
+
+tap targets under 44px: 18 of 19
+  1 x a 81x38
+  1 x a 65x38
+  1 x a 101x38
+  1 x a 82x38
+  1 x a 76x38
+  1 x button 138x31
+  1 x button 40x40
+  1 x a 121x36
+  1 x button 119x34
+  5 x a 129x30
+  1 x a 40x29
+  1 x a 53x29
+  1 x a 7x29
+  1 x a 46x29
+  UNDER 24px (WCAG 2.5.8 fail): a:X 7x29
+
+contrast failures (0 of 206 text nodes):
+
+────────────────────────────────────────────────────────────────────────
+phone (390x844)
+────────────────────────────────────────────────────────────────────────
+page height          : 7388px = 8.8 screens
+horizontal overflow  : no
+interactive in fold  : 6 of 15 on the page
+scroll cue present   : NO
+rounded-full pills   : 13
+infinite animations  : 0
+
+headings (15):
+  H1  Building backend systems, AI infrastructure, and the pipelin
+  H2  Capability Manifest
+  H2  Projects & ArchitectureProjects & ArchitectureProjects & Arc
+  H3  Tutorly, Student-Tutor Matching PlatformTutorly, Student-Tut
+  H3  kubernetes-demokubernetes-demokubernetes-demo
+  H3  Patient Management MicroservicesPatient Management Microserv
+  H3  CIAP, Production NestJS BoilerplateCIAP, Production NestJS B
+  H3  freellmapi, Free-Tier LLM Gatewayfreellmapi, Free-Tier LLM G
+  H2  Stack & Systems MatrixStack & Systems MatrixStack & Systems 
+  H2  Timeline & ArchitectureTimeline & ArchitectureTimeline & Arc
+  H3  Full-Stack Foundations
+  H3  Backend Architecture
+  H3  Distributed Systems & Infrastructure
+  H3  AI Infrastructure
+  H2  System & Practice
+
+sections (6):
+  h=  710  heading=y  id=scroll-hero-trigger name=-  "Building backend systems, AI infrastructure, and t"
+  h=  280  heading=y  id=- name=DIAGNOSTICS  "Capability Manifest"
+  h= 2578  heading=y  id=projects name=PROJECTS  "Projects & ArchitectureProjects & ArchitectureProj"
+  h= 2149  heading=y  id=stack name=STACK  "Stack & Systems MatrixStack & Systems MatrixStack "
+  h=  889  heading=y  id=timeline name=TIMELINE  "Timeline & ArchitectureTimeline & ArchitectureTime"
+  h=  334  heading=y  id=system name=SYSTEM  "System & Practice"
+
+nav (5):
+  "Projects" -> #projects  resolves=true  height=0px
+  "Stack" -> #stack  resolves=true  height=0px
+  "Playground" -> /playground  resolves=true  height=0px
+  "Timeline" -> #timeline  resolves=true  height=0px
+  "System" -> #system  resolves=true  height=0px
+
+font sizes in use: {"10":8,"11":115,"12":37,"13":24,"15":4,"18":5,"30":1}
+
+tap targets under 44px: 15 of 15
+  1 x a 97x32
+  1 x button 72x40
+  1 x button 86x27
+  1 x button 40x40
+  1 x a 121x36
+  1 x button 119x34
+  5 x a 129x30
+  1 x a 40x29
+  1 x a 53x29
+  1 x a 7x29
+  1 x a 46x29
+  UNDER 24px (WCAG 2.5.8 fail): a:X 7x29
+
+contrast failures (0 of 194 text nodes):

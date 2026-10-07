@@ -12,6 +12,10 @@ const eslintConfig = [
       ".claude/**",
       "skills/**",
       "design/**",
+      // Vendored verbatim from React Bits (sources in design/design-src.txt).
+      // Kept byte-identical on purpose so upstream diffs stay reviewable, so
+      // this repo's stricter react-hooks rules are not enforced on them.
+      "components/reactbits/**",
     ],
   },
   ...nextCoreWebVitals,

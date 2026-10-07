@@ -1,0 +1,7 @@
+
+────────────────────────────────────────────────────────────────────────
+playback
+────────────────────────────────────────────────────────────────────────
+FAIL  clip reveals and starts on its own
+FAIL  the first pass ends — no `ended` within 20s
+FAIL  only one request, nothing aborted — responses= aborted=none
