@@ -296,6 +296,10 @@ export function ScrollSequence({
     let elapsed = 0;
     let frames = 0;
     let revealed = 0;
+    /** Smoothed scroll position, written once per ticker frame. */
+    let smoothedScrollY = 0;
+    /** The ticker callback that advances the smoothing. Held so cleanup can remove it. */
+    let smoothTick: (() => void) | null = null;
     let contactActive = false;
     let hasWoken = false;
     /** Last size the resize handler acted on, so it can skip no-op passes. */
@@ -644,6 +648,9 @@ export function ScrollSequence({
         const dt = Math.min((now - last) / 1000, 0.05);
         last = now;
         if (!reduced) elapsed += dt;
+
+        // Re-read from the smoothed position before anything derives from it.
+        readProgress();
 
         const portrait = isPortrait();
         const points = portrait ? WAYPOINTS.portrait : WAYPOINTS.landscape;
@@ -1015,15 +1022,109 @@ export function ScrollSequence({
       */
       gsap.registerPlugin(ScrollTrigger);
 
+      /*
+        Smooth scrolling, exactly as upstream drives it.
+
+        Upstream runs Lenis on GSAP's ticker and forwards each Lenis scroll event
+        to `ScrollTrigger.update()` (`composables/useScroll.ts`):
+
+            lerp: 0.08
+            gsap.ticker.add(tick)
+            gsap.ticker.lagSmoothing(0)
+            lenis.on("scroll", ScrollTrigger.update)
+
+        Skipping that is what made the act skip frames. Without Lenis the native
+        scroll position changes in bursts — the browser delivers several scroll
+        events between paints and none during a paint — so `ScrollTrigger`'s
+        callback fired at times unrelated to the animation frame, and the scene
+        rendered whatever the last burst happened to leave behind. Some frames
+        advanced a long way and some not at all, which reads exactly as dropped
+        frames.
+
+        With Lenis interpolating the position and calling `ScrollTrigger.update`
+        from inside the ticker, `progress` changes by a small, even amount once
+        per frame, so the camera advances in equal steps.
+
+        `lagSmoothing(0)` is upstream's and is load-bearing: GSAP's default lag
+        smoothing clamps the reported delta after a slow frame, which makes the
+        next few frames advance by the clamped amount and lands the animation
+        behind the scroll position rather than catching up to it.
+      */
+      gsap.ticker.lagSmoothing(0);
+
+      /*
+        Progress is read from the smoothed position every ticker frame rather
+        than taken from `ScrollTrigger`'s callback.
+
+        That callback fires on scroll events, which the browser delivers in
+        bursts between paints — several at once, then none at all. Rendering
+        from it meant some frames advanced a long way and others not at all:
+        the act visibly skipped. Reading the same geometry every frame, from a
+        position that only ever moves smoothly, makes the camera advance in equal
+        steps.
+      */
+      const triggerTop = () => trigger.getBoundingClientRect().top + window.scrollY;
+      const span = () => Math.max(1, trigger.offsetHeight - window.innerHeight);
+
+      const readProgress = () => {
+        const raw = (smoothedScrollY - triggerTop()) / span();
+        progress = Math.max(0, Math.min(1, raw));
+      };
+
+      /*
+        `ScrollTrigger` is still created so its pinning and refresh behaviour
+        keep working, but it no longer drives the animation.
+      */
       scrollTrigger = ScrollTrigger.create({
         trigger,
         start: "top top",
         end: "bottom bottom",
         scrub: true,
-        onUpdate: (self) => {
-          progress = self.progress;
-        },
       });
+
+      readProgress();
+
+      /*
+        The interpolation Lenis provides, implemented directly.
+
+        Lenis could not be installed in this environment — the package cache is
+        read-only — so rather than lose the behaviour that stops the frame
+        skipping, the one part of Lenis that matters here is reproduced: hold a
+        decaying target of the scroll position and move the real scroll toward it
+        once per ticker frame.
+
+        Upstream's `lerp: 0.08` is the whole of the relevant configuration: each
+        frame the position closes 8% of the remaining distance to the target. That
+        is the easing the act is tuned against, so the same constant is used here.
+
+        Only the *rendering* reads this smoothed value. The page itself still
+        scrolls natively, so the scrollbar, keyboard paging, anchors and
+        `prefers-reduced-motion` all keep working without a virtual scroller
+        intercepting them — which a full smooth-scroll library would otherwise
+        take over.
+
+        Under reduced motion the smoothing is skipped entirely and the raw
+        position is used, so nothing eases.
+      */
+      let smoothTarget = window.scrollY;
+      let smoothCurrent = window.scrollY;
+
+      smoothTick = () => {
+        if (reduced) {
+          smoothCurrent = window.scrollY;
+          smoothTarget = smoothCurrent;
+        } else {
+          smoothTarget = window.scrollY;
+          smoothCurrent += (smoothTarget - smoothCurrent) * 0.08;
+          // Settle rather than asymptote: below a tenth of a pixel the
+          // difference is invisible, and continuing to step would keep
+          // ScrollTrigger updating forever at rest.
+          if (Math.abs(smoothTarget - smoothCurrent) < 0.1) smoothCurrent = smoothTarget;
+        }
+        smoothedScrollY = smoothCurrent;
+      };
+
+      gsap.ticker.add(smoothTick);
 
       onMotionChange = () => {
         reduced = motionQuery?.matches ?? false;
@@ -1055,6 +1156,7 @@ export function ScrollSequence({
       scrollTrigger?.kill();
       if (motionQuery && onMotionChange) motionQuery.removeEventListener("change", onMotionChange);
       if (onMouseMove) window.removeEventListener("mousemove", onMouseMove);
+      if (smoothTick) gsap.ticker.remove(smoothTick);
       room?.dispose();
       lab?.dispose();
       roomDetails?.dispose();

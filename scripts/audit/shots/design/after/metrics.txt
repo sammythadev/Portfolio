@@ -56,9 +56,8 @@ tap targets under 44px: 18 of 18
   5 x a 129x30
   1 x a 40x29
   1 x a 53x29
-  1 x a 7x29
+  1 x a 24x29
   1 x a 46x29
-  UNDER 24px (WCAG 2.5.8 fail): a:X 7x29
 
 contrast failures (0 of 206 text nodes):
 
@@ -119,9 +118,8 @@ tap targets under 44px: 18 of 18
   5 x a 129x30
   1 x a 40x29
   1 x a 53x29
-  1 x a 7x29
+  1 x a 24x29
   1 x a 46x29
-  UNDER 24px (WCAG 2.5.8 fail): a:X 7x29
 
 contrast failures (0 of 206 text nodes):
 
@@ -130,9 +128,9 @@ tablet (834x1112)
 ────────────────────────────────────────────────────────────────────────
 page height          : 4730px = 4.3 screens
 horizontal overflow  : no
-interactive in fold  : 10 of 19 on the page
+interactive in fold  : 9 of 18 on the page
 scroll cue present   : NO
-rounded-full pills   : 13
+rounded-full pills   : 12
 infinite animations  : 0
 
 headings (15):
@@ -169,22 +167,20 @@ nav (5):
 
 font sizes in use: {"10":9,"11":121,"12":37,"13":24,"14":5,"15":4,"18":1,"20":4,"41.352":1}
 
-tap targets under 44px: 18 of 19
+tap targets under 44px: 17 of 18
   1 x a 81x38
   1 x a 65x38
   1 x a 101x38
   1 x a 82x38
   1 x a 76x38
   1 x button 138x31
-  1 x button 40x40
   1 x a 121x36
   1 x button 119x34
   5 x a 129x30
   1 x a 40x29
   1 x a 53x29
-  1 x a 7x29
+  1 x a 24x29
   1 x a 46x29
-  UNDER 24px (WCAG 2.5.8 fail): a:X 7x29
 
 contrast failures (0 of 206 text nodes):
 
@@ -193,9 +189,9 @@ phone (390x844)
 ────────────────────────────────────────────────────────────────────────
 page height          : 7388px = 8.8 screens
 horizontal overflow  : no
-interactive in fold  : 6 of 15 on the page
+interactive in fold  : 5 of 14 on the page
 scroll cue present   : NO
-rounded-full pills   : 13
+rounded-full pills   : 12
 infinite animations  : 0
 
 headings (15):
@@ -232,18 +228,16 @@ nav (5):
 
 font sizes in use: {"10":8,"11":115,"12":37,"13":24,"15":4,"18":5,"30":1}
 
-tap targets under 44px: 15 of 15
+tap targets under 44px: 14 of 14
   1 x a 97x32
   1 x button 72x40
   1 x button 86x27
-  1 x button 40x40
   1 x a 121x36
   1 x button 119x34
   5 x a 129x30
   1 x a 40x29
   1 x a 53x29
-  1 x a 7x29
+  1 x a 24x29
   1 x a 46x29
-  UNDER 24px (WCAG 2.5.8 fail): a:X 7x29
 
 contrast failures (0 of 194 text nodes):

@@ -36,3 +36,9 @@ next-env.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# Scratch and agent-local state — never commit.
+.cache/
+.verify/
+.freebuff/
+tsconfig.verify.tmp.json

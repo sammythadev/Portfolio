@@ -73,11 +73,29 @@ export const HERO_VIDEO_SRC = "/me-hero-v1.mp4";
 const AUTOPLAY_PASSES = 4;
 
 /**
- * The consent gate. Deliberately only four signals, all of them things the
- * visitor or their browser has actually stated.
+ * The consent gate. Deliberately only statements: things the visitor has asked
+ * for, or set, or is running on.
+ *
+ * `3g` is NOT in this list, and that is a measured decision rather than a
+ * tolerant one. `navigator.connection.effectiveType` is not a fact about the
+ * link — it is Chrome's continuously re-evaluated estimate from a sliding
+ * window of recent requests, and the reading taken during a page load is the
+ * least settled one there is. Measured on loopback, with the 305 KB poster
+ * arriving in 26-128 ms, it reported `3g` on four of six consecutive loads and
+ * `4g` on the other two, and it moved *after* the gate had already run. As a
+ * one-shot veto that silently removed the clip from most visitors on a fast
+ * connection — the same failure mode as the throughput probe below, one layer
+ * down.
+ *
+ * Blocking it there is also the wrong trade on the merits. The clip is 748 KB
+ * and it only reveals once the browser can play it through, so a 3g visitor
+ * waits a few seconds on the photograph and then gets a playback that cannot
+ * stall. `slow-2g` and `2g` stay blocked, where the same file is a minute of
+ * someone's data, and Save-Data — a setting the visitor actually chose — covers
+ * the rest.
  */
 const CONSENT = {
-  blockedEffectiveTypes: ["slow-2g", "2g", "3g"],
+  blockedEffectiveTypes: ["slow-2g", "2g"],
   minDeviceMemoryGb: 2,
 } as const;
 
@@ -226,28 +244,40 @@ export function useHeroVideo(imageSrc: string): HeroVideoState {
     if (!consentAllowsVideo()) return;
 
     let cancelled = false;
+    let armed = false;
     let cancelIdle = () => {};
 
     const arm = () => {
-      if (cancelled) return;
+      if (cancelled || armed) return;
+      armed = true;
       cancelIdle = whenIdle(() => {
         if (!cancelled) setMounted(true);
       });
     };
 
-    if (image.complete && image.naturalWidth > 0) {
-      arm();
-      return () => {
-        cancelled = true;
-        cancelIdle();
-      };
-    }
+    const armIfLoaded = () => {
+      if (cancelled) return;
+      if (image.complete && image.naturalWidth > 0) arm();
+    };
 
-    image.addEventListener("load", arm, { once: true });
+    image.addEventListener("load", armIfLoaded, { once: true });
+    /*
+      Re-read the condition after the listener exists, and again on the next
+      event-loop turn.
+
+      The check above and this listener are not atomic: an image that finishes
+      decoding in the microseconds between them fires `load` with nobody
+      listening, and this effect — which runs exactly once — never arms. The
+      clip then never mounts, which is indistinguishable from "the visitor's
+      connection declined", and it is why the phone viewport showed the clip in
+      one run and not the next. Re-checking is the standard guard for it.
+    */
+    armIfLoaded();
+
     return () => {
       cancelled = true;
       cancelIdle();
-      image.removeEventListener("load", arm);
+      image.removeEventListener("load", armIfLoaded);
     };
   }, [imageSrc]);
 

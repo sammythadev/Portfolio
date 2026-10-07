@@ -21,6 +21,8 @@ const args = Object.fromEntries(
   })
 );
 const MS = Number(args.ms ?? 9000);
+/** Run one scenario by name substring, e.g. `--only=400 kbps`. */
+const only = typeof args.only === "string" ? args.only : null;
 
 const SCENARIOS = [
   { name: "desktop / unthrottled", viewport: { width: 1440, height: 900 } },
@@ -30,7 +32,13 @@ const SCENARIOS = [
     network: { latency: 60, downloadThroughput: (4 * 1024 * 1024) / 8 },
   },
   {
-    name: "desktop / 3g-emulated (400 kbps + 300ms) — consent declines",
+    /*
+      400 kbps is "3g", which is no longer a hard veto: the clip downloads in
+      the background while the photograph stays up, and the window below is far
+      too short to hold 748 KB, so the expectation here is "mounts, does not
+      reveal yet" rather than "never requested".
+    */
+    name: "desktop / 400 kbps + 300ms (3g) — downloads behind the photograph",
     viewport: { width: 1440, height: 900 },
     network: { latency: 300, downloadThroughput: (400 * 1024) / 8 },
   },
@@ -42,7 +50,7 @@ const SCENARIOS = [
 
 const rows = [];
 
-for (const s of SCENARIOS) {
+for (const s of SCENARIOS.filter((s) => !only || s.name.includes(only))) {
   const browser = await launch();
   try {
     const page = await browser.newPage();
@@ -105,17 +113,14 @@ for (const s of SCENARIOS) {
       final = snap;
     }
 
-    // Exercise the control if there is one.
-    let controlWorks = null;
-    if (final?.control) {
-      await page.click("#scroll-hero-trigger button[aria-label]");
-      await sleep(600);
-      const pausedNow = await page.evaluate(() => document.querySelector("video")?.paused);
-      await page.click("#scroll-hero-trigger button[aria-label]");
-      await sleep(600);
-      const resumed = await page.evaluate(() => document.querySelector("video")?.paused);
-      controlWorks = `pause=${pausedNow} resume=${!resumed}`;
-    }
+    /*
+      There is deliberately no control on the hero any more — the clip plays a
+      counted number of passes and then hands back to the photograph, and the
+      hover replay is the only way to bring it back. `verify-hero.mjs` is the
+      script that owns the pass/hover contract; this one only answers whether
+      each scenario gets a clip at all.
+    */
+    const controlWorks = final?.control ? "a control exists (unexpected)" : "none (expected)";
 
     const row = {
       name: s.name,
@@ -125,7 +130,7 @@ for (const s of SCENARIOS) {
       playing,
       statuses: responseStatuses.join("/") || "none",
       aborted: aborted.length ? aborted.join(" | ") : "none",
-      control: controlWorks ?? "no control rendered",
+      control: controlWorks,
       final,
     };
     rows.push(row);
