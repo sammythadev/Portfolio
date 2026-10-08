@@ -12,6 +12,20 @@ dist
 dist-ssr
 *.local
 
+# next.js
+/.next/
+/out/
+/build/
+next-env.d.ts
+*.tsbuildinfo
+
+# env files
+.env
+.env*.local
+
+# vercel
+.vercel
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +36,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Scratch and agent-local state — never commit.
+.cache/
+.verify/
+.freebuff/
+tsconfig.verify.tmp.json

@@ -1,0 +1,12 @@
+file:///home/sammy/sammys-web/Portfolio/node_modules/.pnpm/puppeteer-core@25.12.0/node_modules/puppeteer-core/lib/puppeteer/cdp/Frame.js:187
+                        ? new Error(`${response.errorText} at ${url}`)
+                          ^
+
+Error: net::ERR_CONNECTION_REFUSED at http://localhost:3100/
+    at navigate (file:///home/sammy/sammys-web/Portfolio/node_modules/.pnpm/puppeteer-core@25.12.0/node_modules/puppeteer-core/lib/puppeteer/cdp/Frame.js:187:27)
+    at async Deferred.race (file:///home/sammy/sammys-web/Portfolio/node_modules/.pnpm/puppeteer-core@25.12.0/node_modules/puppeteer-core/lib/puppeteer/util/Deferred.js:33:20)
+    at async CdpFrame.goto (file:///home/sammy/sammys-web/Portfolio/node_modules/.pnpm/puppeteer-core@25.12.0/node_modules/puppeteer-core/lib/puppeteer/cdp/Frame.js:153:25)
+    at async CdpPage.goto (file:///home/sammy/sammys-web/Portfolio/node_modules/.pnpm/puppeteer-core@25.12.0/node_modules/puppeteer-core/lib/puppeteer/api/Page.js:582:20)
+    at async file:///home/sammy/sammys-web/Portfolio/scripts/audit/probe-video.mjs:36:3
+
+Node.js v24.20.0

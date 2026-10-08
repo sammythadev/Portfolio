@@ -1,0 +1,93 @@
+
+────────────────────────────────────────────────────────────────────────
+video event log (viewport=desktop, url=/)
+────────────────────────────────────────────────────────────────────────
+  1099ms  MOUNTED         
+  1101ms  volumechange     rs=0 ns=2 t=0 buf=0 paused=true
+  1102ms  loadstart        rs=0 ns=2 t=0 buf=0 paused=true
+  1114ms  suspend          rs=0 ns=1 t=0 buf=0 paused=true
+  1115ms  durationchange   rs=1 ns=1 t=0 buf=10 paused=true
+  1116ms  loadedmetadata   rs=1 ns=1 t=0 buf=10 paused=true
+  1123ms  REVEALED        
+  1132ms  play             rs=1 ns=1 t=0 buf=10 paused=false
+  1136ms  waiting          rs=1 ns=1 t=0 buf=10 paused=false
+  1164ms  loadeddata       rs=4 ns=1 t=0 buf=10 paused=false
+  1164ms  canplay          rs=4 ns=1 t=0 buf=10 paused=false
+  1165ms  playing          rs=4 ns=1 t=0.001 buf=10 paused=false
+  1165ms  canplaythrough   rs=4 ns=1 t=0.001 buf=10 paused=false
+
+────────────────────────────────────────────────────────────────────────
+media requests
+────────────────────────────────────────────────────────────────────────
+200  305463B  image  /me.jpeg
+206  747899B  media  /me-hero-v1.mp4
+perf: /me-hero-v1.mp4  start=1397ms end=1405ms  transfer=748199B encoded=747899B
+
+────────────────────────────────────────────────────────────────────────
+state timeline (only changes shown)
+────────────────────────────────────────────────────────────────────────
+   271ms  {"t":1236,"exists":false,"readyState":-1,"networkState":-1,"buffered":0,"paused":null,"shown":null,"currentTime":null}
+   524ms  {"t":1489,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.03}
+   776ms  {"t":1741,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.28}
+  1028ms  {"t":1993,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.53}
+  1280ms  {"t":2245,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":0.78}
+  1533ms  {"t":2498,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.04}
+  1789ms  {"t":2751,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.29}
+  2041ms  {"t":3006,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.55}
+  2294ms  {"t":3259,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":1.8}
+  2548ms  {"t":3512,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":2.05}
+  2804ms  {"t":3768,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":2.31}
+  3056ms  {"t":4021,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":2.56}
+  3307ms  {"t":4273,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":2.81}
+  3560ms  {"t":4526,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":3.06}
+  3812ms  {"t":4777,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":3.32}
+  4069ms  {"t":5033,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":3.57}
+  4320ms  {"t":5285,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":3.82}
+  4572ms  {"t":5537,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":4.08}
+  4824ms  {"t":5789,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":4.33}
+  5076ms  {"t":6041,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":4.58}
+  5329ms  {"t":6294,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":4.83}
+  5582ms  {"t":6547,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":5.09}
+  5835ms  {"t":6800,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":5.34}
+  6087ms  {"t":7052,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":5.59}
+  6339ms  {"t":7304,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":5.84}
+  6591ms  {"t":7556,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":6.1}
+  6843ms  {"t":7808,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":6.35}
+  7097ms  {"t":8062,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":6.6}
+  7350ms  {"t":8315,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":6.85}
+  7604ms  {"t":8568,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":7.11}
+  7860ms  {"t":8825,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":7.36}
+  8113ms  {"t":9078,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":7.62}
+  8369ms  {"t":9334,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":7.87}
+  8622ms  {"t":9587,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":8.13}
+  8873ms  {"t":9839,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":8.38}
+  9126ms  {"t":10091,"exists":true,"readyState":4,"networkState":1,"buffered":10,"paused":false,"shown":true,"currentTime":8.63}
+
+────────────────────────────────────────────────────────────────────────
+final DOM state
+────────────────────────────────────────────────────────────────────────
+[
+  {
+    "src": "/me-hero-v1.mp4",
+    "preload": "auto",
+    "muted": true,
+    "readyState": 4,
+    "networkState": 1,
+    "paused": false,
+    "currentTime": 8.632,
+    "duration": 10,
+    "bufferedEnd": 10,
+    "dataShown": true,
+    "opacity": "1",
+    "display": "block",
+    "loop": true,
+    "error": null,
+    "inDom": true
+  }
+]
+<video> elements mounted during the run: 1
+
+────────────────────────────────────────────────────────────────────────
+console errors
+────────────────────────────────────────────────────────────────────────
+none

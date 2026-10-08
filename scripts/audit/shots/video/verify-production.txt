@@ -1,0 +1,24 @@
+
+────────────────────────────────────────────────────────────────────────
+playback
+────────────────────────────────────────────────────────────────────────
+ok    clip reveals and starts on its own — at 1129ms
+ok    the first pass ends — at 11090ms
+ok    only one request, nothing aborted — responses=206 aborted=none
+ok    it plays exactly 4 passes — 4 ended events: 11500, 21177, 31256, 41340ms
+ok    it hands back to the photograph after the last pass — shown=false opacity=0
+ok    and stops — paused=true
+ok    hover starts it again from the beginning — {"exists":true,"shown":true,"paused":false,"t":1.18,"loop":true,"ends":4,"opacity":1}
+ok    the hover replay restarts at zero — t=1.18
+ok    the hover replay loops — loop=true
+ok    leaving dissolves back to the photograph — {"exists":true,"shown":false,"paused":true,"t":1.18,"loop":false,"ends":4,"opacity":0}
+ok    no pause/play control on the hero — []
+
+────────────────────────────────────────────────────────────────────────
+end state
+────────────────────────────────────────────────────────────────────────
+{"exists":true,"shown":false,"paused":true,"t":1.18,"loop":false,"ends":4,"opacity":0}
+
+────────────────────────────────────────────────────────────────────────
+all checks passed
+────────────────────────────────────────────────────────────────────────

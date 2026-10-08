@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Samuel Kasper — Systems Engineer &amp; AI Infrastructure</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<!-- Three.js for 3D Workstation & 3D Scroll Tracer -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          surface: '#131313',
+          'surface-dim': '#131313',
+          'surface-bright': '#393939',
+          'surface-container-lowest': '#0e0e0e',
+          'surface-container-low': '#1b1b1b',
+          'surface-container': '#1f1f1f',
+          'surface-container-high': '#2a2a2a',
+          'surface-card': '#0a0a0a',
+          'surface-hover': '#171717',
+          primary: '#ffffff',
+          'on-surface': '#e2e2e2',
+          'on-surface-variant': '#c4c7c8',
+          'border-line': '#262626',
+          background: '#000000',
+          'signal-fault': '#ff4d1c',
+          'text-dim': '#6b6b6b'
+        },
+        fontFamily: {
+          display: ['Geist', 'sans-serif'],
+          'headline-md': ['Geist', 'sans-serif'],
+          'body-lg': ['Geist', 'sans-serif'],
+          'body-sm': ['Geist', 'sans-serif'],
+          'label-tag': ['JetBrains Mono', 'monospace'],
+          'label-code': ['JetBrains Mono', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+  }
+  .bg-grid-pattern {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(38, 38, 38, 0.4) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(38, 38, 38, 0.4) 1px, transparent 1px);
+  }
+  .spotlight-card { position: relative; }
+  .spotlight-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: radial-gradient(400px circle at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(255,255,255,0.08), transparent 40%);
+    border-radius: inherit;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .spotlight-card:hover::before { opacity: 1; }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  .animate-cursor { animation: blink 1s infinite steps(2); }
+
+  /* Cinematic Section Transitions */
+  .cinematic-section {
+    opacity: 0;
+    transform: translateY(32px) scale(0.99);
+    transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .cinematic-section.is-revealed {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* Fixed Scroll-Linked 3D Tracer Spine */
+  #spine-conduit-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 38;
+  }
+
+  /* ScrollExpand Core Hero */
+  .scroll-expand-container {
+    position: relative;
+    width: 100%;
+    height: 180vh;
+  }
+  .scroll-expand-sticky {
+    position: sticky;
+    top: 57px;
+    height: calc(100vh - 57px);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .scroll-expand-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    will-change: clip-path, border-radius;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .scroll-expand-media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform-origin: center center;
+    will-change: transform;
+  }
+
+  /* React Bits GooeyNav CSS */
+  :root {
+    --color-1: #ededed;
+    --color-2: #c4c7c8;
+    --color-3: #8e9192;
+    --color-4: #ff4d1c;
+  }
+  .gooey-nav-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .gooey-nav-container nav {
+    display: flex;
+    position: relative;
+    background: rgba(14, 14, 14, 0.9);
+    border: 1px solid #262626;
+    border-radius: 9999px;
+    padding: 3px;
+  }
+  .gooey-nav-container nav ul {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    z-index: 3;
+  }
+  .gooey-nav-container nav ul li {
+    border-radius: 9999px;
+    position: relative;
+    cursor: pointer;
+    transition: color 0.25s ease;
+    color: #8e9192;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .gooey-nav-container nav ul li a {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 14px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .gooey-nav-container nav ul li.active {
+    color: #050505 !important;
+    font-weight: 600;
+  }
+  .gooey-nav-container nav ul li:not(.active):hover {
+    color: #ffffff;
+  }
+  .gooey-nav-container .effect {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    opacity: 1;
+    pointer-events: none;
+    display: grid;
+    place-items: center;
+    z-index: 1;
+    transition: left 0.38s cubic-bezier(0.16, 1, 0.3, 1), top 0.38s cubic-bezier(0.16, 1, 0.3, 1), width 0.38s cubic-bezier(0.16, 1, 0.3, 1), height 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .gooey-nav-container .effect.text {
+    color: #050505;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .gooey-nav-container .effect.text.active {
+    opacity: 1;
+  }
+  .gooey-nav-container .effect.filter {
+    filter: blur(5px) contrast(80) blur(0);
+    mix-blend-mode: lighten;
+    z-index: 2;
+  }
+  .gooey-nav-container .effect.filter::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #ededed;
+    border-radius: 9999px;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+  }
+  .particle, .point {
+    display: block;
+    opacity: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 100%;
+    transform-origin: center;
+  }
+  .particle {
+    position: absolute;
+    top: calc(50% - 7px);
+    left: calc(50% - 7px);
+    animation: particleAnimation var(--time, 600ms) cubic-bezier(0.2, 0.8, 0.4, 1) 1;
+  }
+  .point {
+    background: var(--color, #ededed);
+    opacity: 1;
+    animation: pointAnimation var(--time, 600ms) ease 1;
+  }
+  @keyframes particleAnimation {
+    0% {
+      transform: rotate(0deg) translate(var(--start-x), var(--start-y));
+      opacity: 1;
+    }
+    70% {
+      transform: rotate(calc(var(--rotate) * 0.5)) translate(calc(var(--end-x) * 1.15), calc(var(--end-y) * 1.15));
+      opacity: 1;
+    }
+    100% {
+      transform: rotate(var(--rotate)) translate(var(--end-x), var(--end-y));
+      opacity: 0;
+    }
+  }
+  @keyframes pointAnimation {
+    0% { transform: scale(0.3); opacity: 1; }
+    50% { transform: scale(var(--scale, 1)); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  /* AccordionGallery Styles with 5 Artifacts */
+  .accordion-gallery-stage { perspective: 1400px; }
+  .accordion-panel {
+    transition: flex 0.55s cubic-bezier(0.16, 1, 0.3, 1), transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
+    transform-style: preserve-3d;
+    will-change: flex, transform;
+  }
+  .accordion-panel.is-active {
+    flex: 4.8 1 0% !important;
+    transform: rotateY(0deg) scale(1) !important;
+    filter: grayscale(0%) contrast(100%);
+  }
+  .accordion-panel.is-collapsed {
+    flex: 1.25 1 0%;
+    filter: grayscale(85%) contrast(85%);
+    cursor: pointer;
+  }
+  .accordion-panel.is-collapsed:hover { filter: grayscale(35%) contrast(95%); }
+  .accordion-panel.panel-left { transform: rotateY(3.5deg) scale(0.985); }
+  .accordion-panel.panel-right { transform: rotateY(-3.5deg) scale(0.985); }
+  .accordion-panel .panel-accent-bar { transition: width 0.35s ease, background-color 0.35s ease; }
+  .accordion-panel.is-active .panel-accent-bar { width: 100%; background-color: #ff4d1c; }
+  .accordion-panel.is-collapsed .panel-accent-bar { width: 32px; background-color: #353535; }
+  .accordion-panel .expanded-details {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.35s ease 0.15s, transform 0.35s ease 0.15s;
+    pointer-events: none;
+  }
+  .accordion-panel.is-active .expanded-details { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .accordion-panel .collapsed-label { writing-mode: vertical-rl; transform: rotate(180deg); }
+  .accordion-panel.is-active .collapsed-label-container { display: none; }
+  .accordion-panel.is-collapsed .collapsed-label-container { display: flex; }
+
+  /* CometDial & DecryptedText */
+  .comet-dial-ring { transform: rotate(120deg); transform-origin: 50% 50%; }
+  .comet-dial-path { stroke-linecap: round; transition: stroke-dashoffset 0.1s cubic-bezier(0.2, 0.9, 0.3, 1); }
+  .comet-dial-head { filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7)); }
+  .cursor-grab-custom { cursor: grab; }
+  .cursor-grab-custom:active { cursor: grabbing; }
+  [data-decrypt] { font-feature-settings: "tnum" 1; display: inline-block; }
+  .decrypt-cipher { color: #6b6b6b !important; font-family: 'JetBrains Mono', monospace !important; }
+
+  /* 3D Workstation Stage */
+  .workstation-stage-container {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #151515 0%, #080808 80%, #000000 100%);
+    cursor: crosshair;
+  }
+  #three-workstation-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #dither-veil-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+</style>
+</head>
+<body class="bg-background text-on-surface selection:bg-surface-bright selection:text-primary font-body-sm text-[14px] antialiased min-h-screen flex flex-col justify-between relative">
+
+<!-- Background 3D Spline Conduit Tracer Canvas (Anime.js/Three.js Scroll-Linked Object) -->
+<canvas id="spine-conduit-canvas"></canvas>
+
+<!-- Top Navigation with React Bits GooeyNav -->
+<header class="w-full bg-background/90 backdrop-blur border-b border-border-line sticky top-0 z-40">
+<div class="flex justify-between items-center w-full px-6 py-3 max-w-[1080px] mx-auto border-x border-border-line">
+  <!-- Brand & Status -->
+  <div class="flex items-center gap-3">
+    <a class="font-label-code text-[13px] text-primary tracking-tight font-semibold flex items-center gap-2 group" href="#">
+      <span data-decrypt="" data-decrypt-trigger="hover">Samuel Kasper</span>
+    </a>
+    <div class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-border-line bg-surface-card">
+      <span class="w-1.5 h-1.5 rounded-full bg-text-dim"></span>
+      <span class="font-label-tag text-[11px] text-text-dim">Systems Operational</span>
+    </div>
+  </div>
+
+  <!-- React Bits GooeyNav Component -->
+  <div class="hidden md:flex items-center">
+    <div class="gooey-nav-container" id="gooey-nav">
+      <nav>
+        <ul id="gooey-ul">
+          <li class="active"><a href="#projects" data-index="0">Projects</a></li>
+          <li><a href="#stack" data-index="1">Stack</a></li>
+          <li><a href="#timeline" data-index="2">Timeline</a></li>
+          <li><a href="#system" data-index="3">System</a></li>
+        </ul>
+      </nav>
+      <span class="effect filter" id="gooey-filter"></span>
+      <span class="effect text active" id="gooey-text">Projects</span>
+    </div>
+  </div>
+
+  <!-- Trailing Actions -->
+  <div class="flex items-center gap-2">
+    <button class="flex items-center gap-2 px-2.5 py-1 rounded-lg border border-border-line bg-surface-card hover:bg-surface-hover active:scale-[0.97] transition-all" id="open-cmdk-btn">
+      <span class="material-symbols-outlined text-text-dim text-[16px]">terminal</span>
+      <span class="font-label-tag text-[11px] text-text-dim font-medium">Cmd+K</span>
+    </button>
+  </div>
+</div>
+</header>
+
+<!-- React Bits ScrollExpand Hero Showcase -->
+<div class="w-full max-w-[1080px] mx-auto border-x border-border-line relative scroll-expand-container" id="scroll-hero-trigger">
+  <div class="scroll-expand-sticky">
+    <div class="scroll-expand-frame shadow-2xl" id="expand-frame">
+      <img alt="Samuel Kasper" class="scroll-expand-media" id="expand-image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSVp5HW2dTaSbY01O78THnWf932y5GdQhRSaffUn6x0er_F9-EPnO9JMPtteGsU1hOKg7WxKSq1dndgB7IBdOQ-m2N0MjT8dfJ4BKmWVkiqGFO_8uIioWYpUIsoyld6Fp-XJFZlIQX9bipIi-QyC_nxwOqdx22v3NTfTQpQxVzRpNrAiyRVrq7_XNCsEkRiBKn19hTx07qwUOZtpeBMjlI1M5IqE1tKtdiuthD1eLZcGnTzP9zfrZOnOx6fcb5fssFjQU"/>
+      <div class="absolute inset-0 bg-black/55 transition-opacity duration-300" id="media-dimmer"></div>
+      <div class="absolute inset-0 bg-gradient-to-t from-[#000000] via-black/40 to-transparent"></div>
+      <div class="absolute top-4 left-4 flex items-center gap-2 px-2 py-1 rounded bg-black/60 backdrop-blur border border-white/10 font-label-tag text-[10px] text-zinc-300 pointer-events-auto" id="media-badge">
+        <span class="w-1.5 h-1.5 rounded-full bg-signal-fault animate-pulse"></span>
+        <span>DEPLOYMENT_STAGE // FIELD_NODE</span>
+      </div>
+    </div>
+    <div class="relative z-10 w-full h-full flex flex-col justify-between p-6 sm:p-10 pointer-events-none">
+      <div class="flex flex-wrap items-center justify-between gap-3 pointer-events-auto">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="px-2.5 py-1 rounded-lg border border-border-line bg-black/70 backdrop-blur font-label-code text-[12px] text-text-dim">
+            [<span data-decrypt="" data-decrypt-trigger="view" data-speed="25">Staff Systems Engineer &amp; AI Infrastructure</span>]
+          </span>
+          <div class="flex items-center gap-2 px-2 py-0.5 rounded-lg border border-border-line bg-black/70 backdrop-blur font-label-tag text-[11px] text-text-dim">
+            <span class="w-1.5 h-1.5 rounded-full bg-signal-fault"></span>
+            <span>fault-tolerant core</span>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-2 font-label-tag text-[11px] text-zinc-400 bg-black/60 px-2.5 py-1 rounded-md border border-white/10">
+          <span class="material-symbols-outlined text-[13px] text-zinc-400">expand</span>
+          <span>SCROLL TO EXPAND ARCHITECTURE</span>
+        </div>
+      </div>
+      <div class="space-y-4 max-w-3xl pointer-events-auto" id="hero-main-text">
+        <h1 class="font-display text-[44px] sm:text-[48px] font-semibold text-primary tracking-tight leading-[1.1] drop-shadow-md">
+          Building autonomous agent infrastructure &amp; distributed systems.
+        </h1>
+        <p class="font-body-lg text-[16px] text-zinc-300 max-w-2xl drop-shadow leading-relaxed">
+          Designing sub-millisecond execution fabrics, zero-allocation network runtimes, and verified deterministic decoding engines for production agent architectures.
+        </p>
+        <div class="flex flex-wrap gap-2 pt-2">
+          <span class="font-label-tag text-[11px] px-2.5 py-1 rounded-lg border border-border-line bg-black/75 backdrop-blur text-on-surface">Latency-critical Go</span>
+          <span class="font-label-tag text-[11px] px-2.5 py-1 rounded-lg border border-border-line bg-black/75 backdrop-blur text-on-surface">Rust Async Runtimes</span>
+          <span class="font-label-tag text-[11px] px-2.5 py-1 rounded-lg border border-border-line bg-black/75 backdrop-blur text-on-surface">Distributed Orchestration</span>
+          <span class="font-label-tag text-[11px] px-2.5 py-1 rounded-lg border border-border-line bg-black/75 backdrop-blur text-on-surface">LLM Deterministic Evals</span>
+          <span class="font-label-tag text-[11px] px-2.5 py-1 rounded-lg border border-border-line bg-black/75 backdrop-blur text-on-surface">eBPF Data-planes</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 pt-3">
+          <a class="px-3.5 py-1.5 rounded-lg bg-primary text-black font-body-sm text-[13px] font-semibold hover:bg-white active:scale-[0.97] transition-all inline-flex items-center gap-1.5 shadow-lg" href="#projects">
+            View Work
+            <span class="material-symbols-outlined text-[16px]">south</span>
+          </a>
+          <button class="px-3.5 py-1.5 rounded-lg border border-border-line bg-black/80 backdrop-blur hover:bg-surface-hover text-on-surface font-body-sm text-[13px] active:scale-[0.97] transition-all flex items-center gap-1.5" onclick="navigator.clipboard.writeText('samuel@kasper.dev'); showToast('Copied: samuel@kasper.dev');">
+            <span class="material-symbols-outlined text-[16px] text-text-dim">content_copy</span>
+            <span>Copy Email</span>
+            <span class="font-label-tag text-[10px] text-text-dim font-mono">(samuel@kasper.dev)</span>
+          </button>
+          <a class="px-3.5 py-1.5 rounded-lg border border-border-line bg-black/80 backdrop-blur hover:bg-surface-hover text-on-surface font-body-sm text-[13px] active:scale-[0.97] transition-all inline-flex items-center gap-1" href="https://github.com" rel="noreferrer" target="_blank">
+            <span>GitHub</span>
+            <span class="material-symbols-outlined text-[14px] text-text-dim">north_east</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content Canvas -->
+<main class="w-full max-w-[1080px] mx-auto border-x border-border-line flex-1 px-6 py-8 space-y-12">
+  <!-- Telemetry Diagnostic Terminal -->
+  <section class="border-b border-border-line pb-8 pt-2 cinematic-section" data-section-name="DIAGNOSTICS">
+    <div class="rounded-xl border border-border-line bg-surface-card p-4 overflow-hidden relative font-label-code text-[12px] shadow-md">
+      <div class="flex items-center justify-between border-b border-border-line pb-2.5 mb-3 text-text-dim">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[14px]">terminal</span>
+          <span>node-diagnostics://cluster-ingress-04</span>
+        </div>
+        <div class="flex items-center gap-3 font-label-tag text-[11px]">
+          <span class="text-text-dim">REGION: us-east-1a</span>
+          <span class="flex items-center gap-1 text-on-surface"><span class="w-1.5 h-1.5 rounded-full bg-text-dim"></span> RTT: 0.42ms</span>
+        </div>
+      </div>
+      <div class="space-y-1 text-on-surface-variant font-label-code text-[12px]">
+        <div class="flex items-center gap-2">
+          <span class="text-text-dim">14:02:11.890</span>
+          <span class="text-primary font-medium">[SYS_INIT]</span>
+          <span>Deterministic multi-region mesh listener spawned at 0.0.0.0:8443</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-text-dim">14:02:11.912</span>
+          <span class="text-text-dim">[eBPF_ROUTE]</span>
+          <span>TC egress filter attached to eth0 (bypass socket alloc overhead: OK)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-text-dim">14:02:11.984</span>
+          <span class="text-on-surface">[INFER_GRAMMAR]</span>
+          <span>cfg-agent compiled AST schema: 42 production rules verified</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-text-dim">14:02:12.001</span>
+          <span class="text-signal-fault">[TELEMETRY]</span>
+          <span>Simulated packet drop: 0.000% | CPU sys: 1.4% | Memory RSS: 14.8MB</span>
+          <span class="inline-block w-2 h-4 bg-primary align-middle ml-1 animate-cursor"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Projects Section with React Bits AccordionGallery (5 Artifacts) -->
+  <section class="space-y-6 cinematic-section" id="projects" data-section-name="PROJECTS">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div>
+        <h2 class="font-headline-md text-[20px] font-semibold text-primary tracking-tight">
+          <span data-decrypt="" data-decrypt-trigger="view">Featured Systems &amp; Architecture</span>
+        </h2>
+        <p class="font-body-sm text-[13px] text-text-dim">Interactive architectural runtime gallery. Use keys [← / →] or hover panels to explore.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded border border-border-line font-label-tag text-[11px] text-text-dim">
+          <span class="w-1.5 h-1.5 rounded-full bg-signal-fault"></span>
+          <span>ACCORDION_MODE // 5 ARTIFACTS</span>
+        </div>
+        <div class="flex items-center gap-1 text-text-dim">
+          <button aria-label="Previous panel" class="p-1 rounded hover:bg-surface-hover hover:text-primary border border-border-line" id="accordion-prev-btn">
+            <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+          </button>
+          <button aria-label="Next panel" class="p-1 rounded hover:bg-surface-hover hover:text-primary border border-border-line" id="accordion-next-btn">
+            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion Gallery Container (5 Artifacts including Tutorly) -->
+    <div aria-label="Featured Systems Accordion Gallery" class="accordion-gallery-stage w-full flex flex-col md:flex-row gap-2.5 min-h-[500px] md:h-[530px] select-none" id="accordion-gallery" role="region" tabindex="0">
+      
+      <!-- Panel 1: Tutorly — Student-Tutor Matching Engine -->
+      <article aria-expanded="true" class="accordion-panel is-active spotlight-card relative rounded-xl border border-border-line bg-surface-card p-5 md:p-6 flex flex-col justify-between overflow-hidden shadow-xl" data-index="0" role="button" tabindex="0">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+        <div class="panel-accent-bar absolute top-0 left-0 h-[2px]"></div>
+        <div class="collapsed-label-container h-full items-center justify-between py-6 px-1 text-text-dim">
+          <span class="font-label-tag text-[10px] tracking-wider text-text-dim">01</span>
+          <span class="collapsed-label font-label-code text-[12px] font-semibold tracking-tight text-on-surface whitespace-nowrap">Tutorly Engine</span>
+          <span class="material-symbols-outlined text-[16px] text-text-dim">unfold_more</span>
+        </div>
+        <div class="expanded-details flex-1 flex flex-col justify-between h-full space-y-4">
+          <div>
+            <div class="flex items-center justify-between border-b border-border-line pb-3 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-signal-fault text-[16px]">alt_route</span>
+                <span class="font-label-code text-[13px] text-primary font-semibold">tutorly.core/bipartite-v1</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container text-primary font-mono">GREEDY_MATCH</span>
+                <span class="font-label-tag text-[10px] text-text-dim hidden sm:inline">ARTIFACT 01/05</span>
+              </div>
+            </div>
+
+            <!-- Platform Preview Screenshot & Algorithmic Diagnostics -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 mb-3">
+              <div class="lg:col-span-6 rounded-lg border border-border-line overflow-hidden bg-black/60 relative group max-h-[148px]">
+                <img alt="Tutorly Platform Preview" class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9kc-qrADHXMnWqDMacWxv8y5qDZTL-Mj6VvtCQAxWizZBa7NvPdTQRdp6IeY9cwkWYRlhUOwBN-vfzjmEhP51JQkoXS95wvT1-4Nr6t1RHQUGK85ThmmEE2yRpWQLvRb5uAANYaPiPq6qr0P7wFaUGSET0IklBfsuPkPzz3yBbiJe_l1jzLchQwrfqI0hh9s2SzV5a_4XOzjpmczVaRv0cQtCkWStkPKH1G3xPO6mvAAZ1i8BngDfBT9L6KGDrIMwPTc"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between font-label-tag text-[10px] px-2 py-1 rounded bg-black/80 backdrop-blur border border-white/10 text-on-surface">
+                  <span class="truncate">WAEC • NECO • JAMB • IGCSE</span>
+                  <span class="text-signal-fault font-mono">≥50% OPTIMAL</span>
+                </div>
+              </div>
+              <div class="lg:col-span-6 rounded-lg border border-border-line bg-surface-container-lowest p-3 space-y-1.5 font-label-code text-[11px] text-text-dim">
+                <div class="flex items-center justify-between pb-1 border-b border-border-line/60">
+                  <span class="text-on-surface">bipartite_graph: <span class="text-primary font-mono">&lt;Students, Tutors&gt;</span></span>
+                  <span class="text-signal-fault font-label-tag text-[10px]">LIVE DECOMP</span>
+                </div>
+                <div class="text-[11px] pt-0.5 space-y-1">
+                  <div><span class="text-text-dim">score_formula:</span> <span class="text-primary">Σ (w_i × f_i)</span> [4-part sum]</div>
+                  <div><span class="text-text-dim">matrix_compute:</span> <span class="text-primary font-semibold">&lt;12ms</span> latency</div>
+                  <div><span class="text-text-dim">fairness_bound:</span> <span class="text-on-surface">≥50% greedy approximation</span></div>
+                  <div><span class="text-text-dim">deployment:</span> Vercel Edge / West Africa</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between">
+                <h3 class="font-headline-md text-[20px] font-semibold text-primary tracking-tight">
+                  <span data-decrypt="" data-decrypt-trigger="hover">Tutorly — Student-Tutor Matching Engine</span>
+                </h3>
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line text-text-dim">Bipartite Routing</span>
+              </div>
+              <p class="font-body-sm text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                Deterministic greedy bipartite tutor-student matching engine with live score decomposition (4-part weighted sum), schedule overlap matrix computation in &lt;12ms, and verified fairness bounds (≥50% optimal guarantee) deployed for Nigerian secondary schools (WAEC/JAMB/IGCSE).
+              </p>
+            </div>
+          </div>
+          <div class="pt-3 border-t border-border-line flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-1.5">
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Next.js</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">TypeScript</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Tailwind</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Greedy Matching</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Vercel</span>
+            </div>
+            <a class="font-label-code text-[12px] text-primary hover:text-signal-fault transition-colors flex items-center gap-1.5 group font-medium" href="https://student-tutor-platform-frontend.vercel.app" rel="noreferrer" target="_blank">
+              <span>Launch Platform</span>
+              <span class="material-symbols-outlined text-[15px] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">north_east</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Panel 2: kubernetes-demo -->
+      <article aria-expanded="false" class="accordion-panel is-collapsed panel-right spotlight-card relative rounded-xl border border-border-line bg-surface-card p-5 md:p-6 flex flex-col justify-between overflow-hidden shadow-xl" data-index="1" role="button" tabindex="0">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+        <div class="panel-accent-bar absolute top-0 left-0 h-[2px]"></div>
+        <div class="collapsed-label-container h-full items-center justify-between py-6 px-1 text-text-dim">
+          <span class="font-label-tag text-[10px] tracking-wider text-text-dim">02</span>
+          <span class="collapsed-label font-label-code text-[12px] font-semibold tracking-tight text-on-surface whitespace-nowrap">kubernetes-demo</span>
+          <span class="material-symbols-outlined text-[16px] text-text-dim">unfold_more</span>
+        </div>
+        <div class="expanded-details flex-1 flex flex-col justify-between h-full space-y-4">
+          <div>
+            <div class="flex items-center justify-between border-b border-border-line pb-3 mb-4">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-signal-fault text-[16px]">cloud</span>
+                <span class="font-label-code text-[13px] text-primary font-semibold">mesh.spec.k8s.io/v1alpha1</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container text-primary font-mono">eBPF-TC</span>
+                <span class="font-label-tag text-[10px] text-text-dim hidden sm:inline">ARTIFACT 02/05</span>
+              </div>
+            </div>
+            <div class="w-full rounded-lg border border-border-line bg-surface-container-lowest p-3.5 space-y-2 font-label-code text-[12px] text-text-dim relative">
+              <div class="flex items-center justify-between text-[11px] pb-1 border-b border-border-line/60">
+                <span class="text-on-surface">target: <span class="text-primary font-mono">ingress-gw-east.cluster.local</span></span>
+                <span class="text-signal-fault font-label-tag text-[10px]">ACTIVE MESH</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] pt-1">
+                <div><span class="text-text-dim">failover_policy:</span> ZeroDowntimeWeightSteer</div>
+                <div><span class="text-text-dim">latency_p99:</span> <span class="text-primary font-semibold">1.18ms</span> [-62% vs kube-proxy]</div>
+                <div><span class="text-text-dim">kernel_plane:</span> 6.8.0-generic (BPF_PROG_TYPE_SCHED_CLS)</div>
+                <div><span class="text-text-dim">nodes_synced:</span> <span class="text-on-surface">3/3 nodes nominal</span></div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-headline-md text-[20px] font-semibold text-primary tracking-tight">
+                  <span data-decrypt="" data-decrypt-trigger="hover">kubernetes-demo</span>
+                </h3>
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line text-text-dim">Infra</span>
+              </div>
+              <p class="font-body-sm text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                Deterministic multi-cluster failover mesh with zero-downtime traffic steering, dynamic kernel eBPF route rewriting, and zero-copy packet filtration for cloud-native AI pipelines.
+              </p>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-border-line flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-1.5">
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Go</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">K8s CRD</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">eBPF</span>
+            </div>
+            <a class="font-label-code text-[12px] hover:text-primary transition-colors flex items-center gap-1 text-on-surface" href="#">
+              <span>View Architecture</span>
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Panel 3: cfg-agent -->
+      <article aria-expanded="false" class="accordion-panel is-collapsed panel-right spotlight-card relative rounded-xl border border-border-line bg-surface-card p-5 md:p-6 flex flex-col justify-between overflow-hidden shadow-xl" data-index="2" role="button" tabindex="0">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+        <div class="panel-accent-bar absolute top-0 left-0 h-[2px]"></div>
+        <div class="collapsed-label-container h-full items-center justify-between py-6 px-1 text-text-dim">
+          <span class="font-label-tag text-[10px] tracking-wider text-text-dim">03</span>
+          <span class="collapsed-label font-label-code text-[12px] font-semibold tracking-tight text-on-surface whitespace-nowrap">cfg-agent</span>
+          <span class="material-symbols-outlined text-[16px] text-text-dim">unfold_more</span>
+        </div>
+        <div class="expanded-details flex-1 flex flex-col justify-between h-full space-y-4">
+          <div>
+            <div class="flex items-center justify-between border-b border-border-line pb-3 mb-4">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-signal-fault text-[16px]">code_blocks</span>
+                <span class="font-label-code text-[13px] text-primary font-semibold">grammar.ebnf // ast_eval</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container text-primary font-mono">RUST_WASM</span>
+                <span class="font-label-tag text-[10px] text-text-dim hidden sm:inline">ARTIFACT 03/05</span>
+              </div>
+            </div>
+            <div class="w-full rounded-lg border border-border-line bg-surface-container-lowest p-3.5 space-y-2 font-label-code text-[12px] text-text-dim relative">
+              <div class="flex items-center justify-between text-[11px] pb-1 border-b border-border-line/60">
+                <span class="text-on-surface">root ::= "{" ws "\"action\":" ws string ws "}"</span>
+                <span class="text-primary font-label-tag text-[10px]">PASSING</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] pt-1">
+                <div><span class="text-text-dim">mask_tokens:</span> bitmask applied in 0.04ms</div>
+                <div><span class="text-text-dim">zero_drift:</span> 10,000 / 10,000 valid JSON</div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-headline-md text-[20px] font-semibold text-primary tracking-tight">
+                  <span data-decrypt="" data-decrypt-trigger="hover">cfg-agent</span>
+                </h3>
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line text-text-dim">Inference</span>
+              </div>
+              <p class="font-body-sm text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                Constrained decoding grammar engine for deterministic LLM structured outputs with zero runtime parsing failure and WASM cross-target compilation.
+              </p>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-border-line flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-1.5">
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Rust</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">WASM</span>
+            </div>
+            <a class="font-label-code text-[12px] hover:text-primary transition-colors flex items-center gap-1 text-on-surface" href="#">
+              <span>View Benchmarks</span>
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Panel 4: CryptoAI -->
+      <article aria-expanded="false" class="accordion-panel is-collapsed panel-right spotlight-card relative rounded-xl border border-border-line bg-surface-card p-5 md:p-6 flex flex-col justify-between overflow-hidden shadow-xl" data-index="3" role="button" tabindex="0">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+        <div class="panel-accent-bar absolute top-0 left-0 h-[2px]"></div>
+        <div class="collapsed-label-container h-full items-center justify-between py-6 px-1 text-text-dim">
+          <span class="font-label-tag text-[10px] tracking-wider text-text-dim">04</span>
+          <span class="collapsed-label font-label-code text-[12px] font-semibold tracking-tight text-on-surface whitespace-nowrap">CryptoAI</span>
+          <span class="material-symbols-outlined text-[16px] text-text-dim">unfold_more</span>
+        </div>
+        <div class="expanded-details flex-1 flex flex-col justify-between h-full space-y-4">
+          <div>
+            <div class="flex items-center justify-between border-b border-border-line pb-3 mb-4">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-signal-fault text-[16px]">reorder</span>
+                <span class="font-label-code text-[13px] text-primary font-semibold">stream.mempool.bin</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container text-primary font-mono">LOCK_FREE</span>
+                <span class="font-label-tag text-[10px] text-text-dim hidden sm:inline">ARTIFACT 04/05</span>
+              </div>
+            </div>
+            <div class="w-full rounded-lg border border-border-line bg-surface-container-lowest p-3.5 space-y-2 font-label-code text-[12px] text-text-dim relative">
+              <div class="flex items-center justify-between text-[11px] pb-1 border-b border-border-line/60">
+                <span class="text-on-surface">throughput: <span class="text-primary font-mono">480,000 msgs/sec</span> [per core]</span>
+                <span class="text-signal-fault font-label-tag text-[10px]">STREAMING</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] pt-1">
+                <div><span class="text-text-dim">tick_to_trade:</span> 4.12 microseconds</div>
+                <div><span class="text-text-dim">queue_policy:</span> Disruptor Ring w/ AVX2</div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-headline-md text-[20px] font-semibold text-primary tracking-tight">
+                  <span data-decrypt="" data-decrypt-trigger="hover">CryptoAI</span>
+                </h3>
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line text-text-dim">Systems</span>
+              </div>
+              <p class="font-body-sm text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                Low-latency algorithmic order-routing and mempool event stream processor built on lock-free bounded rings and high-performance AVX2 instructions.
+              </p>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-border-line flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-1.5">
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">C++20</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Tokio</span>
+            </div>
+            <a class="font-label-code text-[12px] hover:text-primary transition-colors flex items-center gap-1 text-on-surface" href="#">
+              <span>View Specs</span>
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Panel 5: solana-ai-agent -->
+      <article aria-expanded="false" class="accordion-panel is-collapsed panel-right spotlight-card relative rounded-xl border border-border-line bg-surface-card p-5 md:p-6 flex flex-col justify-between overflow-hidden shadow-xl" data-index="4" role="button" tabindex="0">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+        <div class="panel-accent-bar absolute top-0 left-0 h-[2px]"></div>
+        <div class="collapsed-label-container h-full items-center justify-between py-6 px-1 text-text-dim">
+          <span class="font-label-tag text-[10px] tracking-wider text-text-dim">05</span>
+          <span class="collapsed-label font-label-code text-[12px] font-semibold tracking-tight text-on-surface whitespace-nowrap">solana-ai-agent</span>
+          <span class="material-symbols-outlined text-[16px] text-text-dim">unfold_more</span>
+        </div>
+        <div class="expanded-details flex-1 flex flex-col justify-between h-full space-y-4">
+          <div>
+            <div class="flex items-center justify-between border-b border-border-line pb-3 mb-4">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-signal-fault text-[16px]">fingerprint</span>
+                <span class="font-label-code text-[13px] text-primary font-semibold">zk_state_attestation</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container text-primary font-mono">SOL_PROGRAM</span>
+                <span class="font-label-tag text-[10px] text-text-dim hidden sm:inline">ARTIFACT 05/05</span>
+              </div>
+            </div>
+            <div class="w-full rounded-lg border border-border-line bg-surface-container-lowest p-3.5 space-y-2 font-label-code text-[12px] text-text-dim relative">
+              <div class="flex items-center justify-between text-[11px] pb-1 border-b border-border-line/60">
+                <span class="text-on-surface">proof_verify: <span class="text-primary font-mono">Groth16 CPI</span></span>
+                <span class="text-signal-fault font-label-tag text-[10px]">MAINNET-BETA</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] pt-1">
+                <div><span class="text-text-dim">compute_units:</span> 184,200 CU</div>
+                <div><span class="text-text-dim">authority:</span> PDA multi-sig</div>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-headline-md text-[20px] font-semibold text-primary tracking-tight">
+                  <span data-decrypt="" data-decrypt-trigger="hover">solana-ai-agent</span>
+                </h3>
+                <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line text-text-dim">Smart Contracts</span>
+              </div>
+              <p class="font-body-sm text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                On-chain autonomous agent execution environment with cryptographic zk-attestation, verifiable state commitments, and bounded transaction budgets.
+              </p>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-border-line flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-1.5">
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Rust</span>
+              <span class="font-label-tag text-[11px] px-2 py-0.5 rounded border border-border-line bg-surface-container-lowest text-text-dim">Solana</span>
+            </div>
+            <a class="font-label-code text-[12px] hover:text-primary transition-colors flex items-center gap-1 text-on-surface" href="#">
+              <span>View Audit</span>
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Systems Matrix & Toolchain with 3D Computer & DitherVeil -->
+  <section class="space-y-6 pt-6 border-t border-border-line cinematic-section" id="stack" data-section-name="STACK">
+    <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+      <div>
+        <h2 class="font-headline-md text-[20px] font-semibold text-primary tracking-tight">
+          <span data-decrypt="" data-decrypt-trigger="view">Systems Matrix &amp; Toolchain</span>
+        </h2>
+        <p class="font-body-sm text-[13px] text-text-dim">Interactive 3D Workstation inspection stage paired with React Bits &lt;DitherVeil /&gt; and low-level matrix.</p>
+      </div>
+      <div class="flex items-center gap-2 font-label-tag text-[11px] text-text-dim">
+        <span class="w-1.5 h-1.5 rounded-full bg-signal-fault"></span>
+        <span>INSPECTION_MODE // DITHER_CURTAIN</span>
+      </div>
+    </div>
+
+    <!-- 3D Computer Workstation Stage + <DitherVeil /> Canvas -->
+    <div class="rounded-xl border border-border-line bg-surface-card overflow-hidden shadow-2xl relative">
+      <div class="flex flex-wrap items-center justify-between px-4 py-2.5 border-b border-border-line bg-surface-card/95 font-label-code text-[12px]">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-[15px] text-signal-fault">computer</span>
+          <span class="text-primary font-semibold tracking-tight">DEVICE: SamuelK-KubeStation-01</span>
+          <span class="hidden md:inline text-text-dim text-[11px]">// ARCH: x86_64 / arm64</span>
+        </div>
+        <div class="flex items-center gap-2 mt-2 sm:mt-0 font-label-tag text-[11px]">
+          <button class="px-2.5 py-1 rounded border border-border-line bg-surface-container hover:bg-surface-hover text-primary flex items-center gap-1.5 transition-colors" id="toggle-dither-btn">
+            <span class="w-1.5 h-1.5 rounded-full bg-signal-fault" id="dither-state-dot"></span>
+            <span id="dither-toggle-label">Dither: Veil Active</span>
+          </button>
+          <div class="hidden sm:flex items-center gap-1 bg-surface-container-lowest p-0.5 rounded border border-border-line">
+            <button class="dither-p-btn px-2 py-0.5 rounded bg-surface-container text-primary font-mono text-[10px]" data-pattern="floyd">Floyd</button>
+            <button class="dither-p-btn px-2 py-0.5 rounded text-text-dim hover:text-on-surface font-mono text-[10px]" data-pattern="bayer">Bayer</button>
+            <button class="dither-p-btn px-2 py-0.5 rounded text-text-dim hover:text-on-surface font-mono text-[10px]" data-pattern="blue">Blue</button>
+          </div>
+          <button class="px-2 py-1 rounded border border-border-line hover:bg-surface-hover text-text-dim hover:text-primary transition-colors flex items-center gap-1" id="toggle-wireframe-btn">
+            <span class="material-symbols-outlined text-[14px]">grid_4x4</span>
+            <span class="hidden md:inline">Wireframe</span>
+          </button>
+          <button class="p-1 rounded border border-border-line hover:bg-surface-hover text-text-dim hover:text-primary transition-colors" id="reset-cam-btn">
+            <span class="material-symbols-outlined text-[14px]">restart_alt</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="workstation-stage-container" id="workstation-stage">
+        <canvas id="three-workstation-canvas"></canvas>
+        <canvas id="dither-veil-canvas"></canvas>
+        <div class="absolute bottom-3 left-4 pointer-events-none z-10 flex items-center gap-2 font-label-tag text-[10px] text-text-dim bg-black/70 backdrop-blur px-2.5 py-1 rounded-md border border-white/10">
+          <span class="material-symbols-outlined text-[13px] text-primary">touch_app</span>
+          <span>Hover / Drag to unveil 3D hardware • Click to burst dither</span>
+        </div>
+        <div class="absolute top-3 right-4 pointer-events-none z-10 hidden sm:flex items-center gap-2 font-label-code text-[11px] text-[#ededed] bg-black/60 backdrop-blur px-2 py-1 rounded border border-white/10">
+          <span class="w-1.5 h-1.5 rounded-full bg-signal-fault animate-pulse"></span>
+          <span>FPS: 60 | ROT: 18.4°</span>
+        </div>
+      </div>
+
+      <div class="px-4 py-2 bg-surface-container-lowest border-t border-border-line flex flex-wrap items-center justify-between text-[11px] font-label-code text-text-dim">
+        <div class="flex items-center gap-4">
+          <span>CHASSIS: Retro-Futuristic Terminal 0x8F</span>
+          <span class="hidden sm:inline">BUS: PCIe 5.0 x16 Zero-Copy</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-primary font-mono">&lt;DitherVeil pixelSize: 2 softness: 0.6 /&gt;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 Layers Matrix -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="rounded-xl border border-border-line bg-surface-card p-5 space-y-3">
+        <div class="flex items-center justify-between border-b border-border-line pb-2">
+          <span class="font-label-code text-[13px] text-primary font-semibold flex items-center gap-2">
+            <span class="material-symbols-outlined text-text-dim text-[16px]">hub</span>
+            Distributed Systems &amp; Kernels
+          </span>
+          <span class="font-label-tag text-[11px] text-text-dim">LAYER 01</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1 font-body-sm text-[13px]">
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Go (Concurrency/GC)</span>
+            <span class="font-label-tag text-[11px] text-text-dim">L5</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Rust (Tokio/Async)</span>
+            <span class="font-label-tag text-[11px] text-text-dim">L5</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>eBPF / XDP Filters</span>
+            <span class="font-label-tag text-[11px] text-text-dim">L4</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Raft / Paxos</span>
+            <span class="font-label-tag text-[11px] text-text-dim">L4</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-border-line bg-surface-card p-5 space-y-3">
+        <div class="flex items-center justify-between border-b border-border-line pb-2">
+          <span class="font-label-code text-[13px] text-primary font-semibold flex items-center gap-2">
+            <span class="material-symbols-outlined text-text-dim text-[16px]">psychology</span>
+            AI &amp; Deterministic Inference
+          </span>
+          <span class="font-label-tag text-[11px] text-text-dim">LAYER 02</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1 font-body-sm text-[13px]">
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Grammar Masking (CFG)</span>
+            <span class="font-label-tag text-[11px] text-text-dim">CORE</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>llama.cpp / vLLM</span>
+            <span class="font-label-tag text-[11px] text-text-dim">CORE</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Vector Indexes (HNSW)</span>
+            <span class="font-label-tag text-[11px] text-text-dim">CORE</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>TensorRT-LLM</span>
+            <span class="font-label-tag text-[11px] text-text-dim">SPEC</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-border-line bg-surface-card p-5 space-y-3">
+        <div class="flex items-center justify-between border-b border-border-line pb-2">
+          <span class="font-label-code text-[13px] text-primary font-semibold flex items-center gap-2">
+            <span class="material-symbols-outlined text-text-dim text-[16px]">dns</span>
+            Runtime &amp; Cloud Orchestration
+          </span>
+          <span class="font-label-tag text-[11px] text-text-dim">LAYER 03</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1 font-body-sm text-[13px]">
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Kubernetes Internals</span>
+            <span class="font-label-tag text-[11px] text-text-dim">PROD</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Linux Cgroups v2</span>
+            <span class="font-label-tag text-[11px] text-text-dim">PROD</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Terraform / Pulumi</span>
+            <span class="font-label-tag text-[11px] text-text-dim">PROD</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Prometheus / eBPF Otel</span>
+            <span class="font-label-tag text-[11px] text-text-dim">PROD</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-border-line bg-surface-card p-5 space-y-3">
+        <div class="flex items-center justify-between border-b border-border-line pb-2">
+          <span class="font-label-code text-[13px] text-primary font-semibold flex items-center gap-2">
+            <span class="material-symbols-outlined text-text-dim text-[16px]">sync_alt</span>
+            Wire Protocols &amp; Serialization
+          </span>
+          <span class="font-label-tag text-[11px] text-text-dim">LAYER 04</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1 font-body-sm text-[13px]">
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>gRPC / HTTP3 QUIC</span>
+            <span class="font-label-tag text-[11px] text-text-dim">NATIVE</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>FlatBuffers / Protobuf</span>
+            <span class="font-label-tag text-[11px] text-text-dim">NATIVE</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>Apache Kafka / Redpanda</span>
+            <span class="font-label-tag text-[11px] text-text-dim">NATIVE</span>
+          </div>
+          <div class="p-2.5 rounded-lg border border-border-line bg-surface-container-lowest flex items-center justify-between">
+            <span>WebSocket / TLS Term</span>
+            <span class="font-label-tag text-[11px] text-text-dim">NATIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Timeline -->
+  <section class="space-y-6 pt-6 border-t border-border-line cinematic-section" id="timeline" data-section-name="TIMELINE">
+    <div>
+      <h2 class="font-headline-md text-[20px] font-semibold text-primary tracking-tight">
+        <span data-decrypt="" data-decrypt-trigger="view">Architecture Timeline</span>
+      </h2>
+      <p class="font-body-sm text-[13px] text-text-dim">Chronological track record of systems designed, sustained, and maintained at scale.</p>
+    </div>
+    <div class="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[1px] before:bg-border-line">
+      <div class="relative pl-8">
+        <div class="absolute left-2.5 top-1.5 w-1.5 h-1.5 rounded-full bg-primary -translate-x-1/2"></div>
+        <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+          <h3 class="font-body-lg text-[15px] text-primary font-semibold">Staff Systems Engineer &amp; Infrastructure Lead</h3>
+          <span class="font-label-tag text-[11px] text-text-dim">2023 — PRESENT</span>
+        </div>
+        <div class="font-label-code text-[12px] text-text-dim">Hyperscale AI Fabric Inc.</div>
+        <p class="font-body-sm text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+          Architected and deployed custom Kubernetes CRD network steering fabrics across multi-cloud GPU compute fleets. Decreased inference routing jitter by 41% and reduced packet discard rates to absolute zero under burst loads.
+        </p>
+      </div>
+      <div class="relative pl-8">
+        <div class="absolute left-2.5 top-1.5 w-1.5 h-1.5 rounded-full bg-text-dim -translate-x-1/2"></div>
+        <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+          <h3 class="font-body-lg text-[15px] text-primary font-semibold">Senior Systems Architect</h3>
+          <span class="font-label-tag text-[11px] text-text-dim">2021 — 2023</span>
+        </div>
+        <div class="font-label-code text-[12px] text-text-dim">Decentralized Orderflow Labs</div>
+        <p class="font-body-sm text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+          Built sub-millisecond mempool streaming pipelines handling ~500k messages/sec per core. Spearheaded Rust and C++ microsecond-level benchmarking suites, lock-free ringbuffers, and AVX2 SIMD acceleration modules.
+        </p>
+      </div>
+      <div class="relative pl-8">
+        <div class="absolute left-2.5 top-1.5 w-1.5 h-1.5 rounded-full bg-text-dim -translate-x-1/2"></div>
+        <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+          <h3 class="font-body-lg text-[15px] text-primary font-semibold">Distributed Systems Engineer</h3>
+          <span class="font-label-tag text-[11px] text-text-dim">2019 — 2021</span>
+        </div>
+        <div class="font-label-code text-[12px] text-text-dim">Cloud Compute Platform Corp</div>
+        <p class="font-body-sm text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+          Engineered Raft state replication drivers in Go and Rust for cross-region persistent storage engines. Authored eBPF probes for continuous live kernel profiling.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- System Telemetry & Host Environment -->
+  <section class="rounded-xl border border-border-line bg-surface-card p-6 space-y-4 cinematic-section" id="system" data-section-name="SYSTEM">
+    <div class="flex items-center justify-between border-b border-border-line pb-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-text-dim"></span>
+        <span class="font-headline-md text-[18px] font-semibold text-primary">System Telemetry &amp; Host Environment</span>
+      </div>
+      <span class="font-label-tag text-[11px] text-text-dim font-mono">STATUS: 200 OK</span>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-1">
+      <div class="p-3 rounded-lg border border-border-line bg-surface-container-lowest">
+        <div class="font-label-tag text-[10px] text-text-dim">INGRESS LATENCY</div>
+        <div class="font-headline-md text-[20px] font-semibold text-primary mt-1">0.42 ms</div>
+        <div class="font-label-tag text-[10px] text-text-dim mt-0.5">p99 nominal</div>
+      </div>
+      <div class="p-3 rounded-lg border border-border-line bg-surface-container-lowest">
+        <div class="font-label-tag text-[10px] text-text-dim">FAILOVER SLI</div>
+        <div class="font-headline-md text-[20px] font-semibold text-primary mt-1">99.999%</div>
+        <div class="font-label-tag text-[10px] text-text-dim mt-0.5">zero downtime</div>
+      </div>
+      <div class="p-3 rounded-lg border border-border-line bg-surface-container-lowest">
+        <div class="font-label-tag text-[10px] text-text-dim">ACTIVE INFERENCE</div>
+        <div class="font-headline-md text-[20px] font-semibold text-primary mt-1">CFG-Strict</div>
+        <div class="font-label-tag text-[10px] text-text-dim mt-0.5">grammar bitmask</div>
+      </div>
+      <div class="p-3 rounded-lg border border-border-line bg-surface-container-lowest">
+        <div class="font-label-tag text-[10px] text-text-dim">COMPILATION TARGET</div>
+        <div class="font-headline-md text-[20px] font-semibold text-primary mt-1">x86_64 / arm64</div>
+        <div class="font-label-tag text-[10px] text-text-dim mt-0.5">musl static</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer class="w-full bg-background border-t border-border-line relative z-20">
+  <div class="flex flex-col md:flex-row justify-between items-center w-full px-6 py-8 max-w-[1080px] mx-auto border-x border-border-line gap-4">
+    <div class="flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-text-dim"></span>
+      <span class="font-label-code text-[12px] text-text-dim">
+        © 2025 Samuel Kasper. Systems Operational [Pip nominal]
+      </span>
+    </div>
+    <div class="flex items-center space-x-6">
+      <a class="text-text-dim hover:text-on-surface font-label-tag text-[11px] transition-colors" href="https://github.com" rel="noreferrer" target="_blank">Source</a>
+      <a class="text-text-dim hover:text-on-surface font-label-tag text-[11px] transition-colors" href="#system">Telemetry</a>
+      <a class="text-text-dim hover:text-on-surface font-label-tag text-[11px] transition-colors" href="#">RFCs</a>
+      <a class="text-text-dim hover:text-on-surface font-label-tag text-[11px] transition-colors" href="mailto:samuel@kasper.dev">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Bottom-Left CometDial -->
+<div class="fixed bottom-6 left-6 z-50 flex items-center gap-3 bg-[#0a0a0a]/92 backdrop-blur-md border border-[#262626] rounded-xl p-2.5 shadow-2xl transition-all select-none group" id="comet-telemetry-widget">
+  <div class="relative w-[76px] h-[76px] flex items-center justify-center cursor-grab-custom" id="comet-dial-drag-area">
+    <svg class="w-[76px] h-[76px] comet-dial-ring" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="comet-glow-grad" x1="0%" x2="100%" y1="0%" y2="100%">
+          <stop offset="0%" stop-color="#444748" stop-opacity="0.3"></stop>
+          <stop offset="60%" stop-color="#c6c6c7" stop-opacity="0.8"></stop>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="1"></stop>
+        </linearGradient>
+        <filter id="dial-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.5" result="blur"></feGaussianBlur>
+          <feMerge>
+            <feMergeNode in="blur"></feMergeNode>
+            <feMergeNode in="SourceGraphic"></feMergeNode>
+          </feMerge>
+        </filter>
+      </defs>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="#262626" stroke-width="4" stroke-linecap="round" stroke-dasharray="209.44 251.32"></circle>
+      <circle class="comet-dial-path" id="comet-track-path" cx="50" cy="50" r="40" fill="none" stroke="url(#comet-glow-grad)" stroke-width="4.2" stroke-linecap="round" stroke-dasharray="209.44 251.32" stroke-dashoffset="209.44"></circle>
+      <circle class="comet-dial-head" id="comet-head-dot" cx="50" cy="10" r="3.4" fill="#ffffff" filter="url(#dial-glow)"></circle>
+    </svg>
+    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+      <span class="font-label-code text-[13px] font-bold text-[#ededed] tracking-tight leading-none" id="comet-percentage">0%</span>
+      <span class="font-label-tag text-[9px] text-[#6b6b6b] mt-0.5 tracking-wider leading-none">DEPTH</span>
+    </div>
+  </div>
+  <div class="flex flex-col justify-center pr-2 font-label-tag border-l border-[#262626] pl-2.5 space-y-0.5">
+    <div class="flex items-center gap-1.5 text-[10px] text-[#6b6b6b] font-mono tracking-wider">
+      <span class="w-1.5 h-1.5 rounded-full bg-signal-fault animate-pulse"></span>
+      <span class="text-text-dim">SYS_TELEMETRY</span>
+    </div>
+    <div class="flex items-center gap-1 font-label-code text-[11px] text-on-surface">
+      <span class="text-text-dim">NODE:</span>
+      <span class="text-[#ededed] font-semibold tracking-wide" id="comet-active-section">HERO</span>
+    </div>
+    <div class="font-label-tag text-[9px] text-text-dim font-mono tracking-tight" id="comet-px-readout">0 / 0 px</div>
+  </div>
+</div>
+
+<!-- Command Palette Modal -->
+<div class="fixed inset-0 bg-black/80 backdrop-blur-[2px] z-50 hidden items-start justify-center pt-24 px-4" id="cmdk-backdrop">
+  <div class="w-full max-w-xl rounded-xl border border-border-line bg-surface-card p-2 shadow-2xl overflow-hidden font-body-sm">
+    <div class="flex items-center gap-2 px-3 py-2 border-b border-border-line">
+      <span class="material-symbols-outlined text-text-dim text-[18px]">terminal</span>
+      <input class="w-full bg-transparent border-0 text-primary placeholder:text-text-dim focus:ring-0 focus:outline-none text-[13px] p-0" id="cmdk-input" placeholder="Type a command or search systems..." type="text"/>
+      <span class="font-label-tag text-[10px] text-text-dim border border-border-line px-1.5 py-0.5 rounded">ESC</span>
+    </div>
+    <div class="py-2 space-y-1 max-h-80 overflow-y-auto" id="cmdk-results">
+      <div class="px-3 py-1 font-label-tag text-[10px] text-text-dim">NAVIGATION</div>
+      <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-hover flex items-center justify-between group transition-colors" onclick="navigateCmd('#projects')">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-text-dim group-hover:text-primary text-[18px]">folder_open</span>
+          <span class="text-on-surface group-hover:text-primary text-[13px]">Jump to Projects</span>
+        </div>
+        <span class="font-label-tag text-[10px] text-text-dim">G P</span>
+      </button>
+      <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-hover flex items-center justify-between group transition-colors" onclick="navigateCmd('#stack')">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-text-dim group-hover:text-primary text-[18px]">memory</span>
+          <span class="text-on-surface group-hover:text-primary text-[13px]">View Systems Matrix</span>
+        </div>
+        <span class="font-label-tag text-[10px] text-text-dim">G S</span>
+      </button>
+      <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-surface-hover flex items-center justify-between group transition-colors" onclick="navigateCmd('#timeline')">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-text-dim group-hover:text-primary text-[18px]">schedule</span>
+          <span class="text-on-surface group-hover:text-primary text-[13px]">Architecture Timeline</span>
+        </div>
+        <span class="font-label-tag text-[10px] text-text-dim">G T</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="fixed bottom-6 right-6 px-4 py-2 rounded-lg border border-border-line bg-surface-card text-on-surface font-label-code text-[12px] shadow-lg translate-y-16 opacity-0 transition-all pointer-events-none z-50 flex items-center gap-2" id="toast">
+  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+  <span id="toast-text">Alert</span>
+</div>
+
+<script>
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    const txt = document.getElementById('toast-text');
+    if (!t || !txt) return;
+    txt.textContent = msg;
+    t.classList.remove('translate-y-16', 'opacity-0');
+    setTimeout(() => t.classList.add('translate-y-16', 'opacity-0'), 2200);
+  }
+
+  // --- Cinematic Scroll Revealer ---
+  (function initCinematicReveals() {
+    const sections = document.querySelectorAll('.cinematic-section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+        }
+      });
+    }, { threshold: 0.12 });
+    sections.forEach(s => observer.observe(s));
+  })();
+
+  // --- Persistent 3D Conduit / Particle Spline Tracer ---
+  (function initScroll3DConduit() {
+    const canvas = document.getElementById('spine-conduit-canvas');
+    if (!canvas || typeof THREE === 'undefined') return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 18);
+
+    // Hyper-dense micro-cube + wireframe halo
+    const cubeGroup = new THREE.Group();
+    scene.add(cubeGroup);
+
+    // Inner glowing core
+    const coreGeo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+    cubeGroup.add(coreMesh);
+
+    // Outer wireframe hypercube
+    const outerGeo = new THREE.BoxGeometry(1.35, 1.35, 1.35);
+    const wireMat = new THREE.MeshBasicMaterial({ color: 0xff4d1c, wireframe: true, transparent: true, opacity: 0.85 });
+    const outerMesh = new THREE.Mesh(outerGeo, wireMat);
+    cubeGroup.add(outerMesh);
+
+    // Orbital ring
+    const ringGeo = new THREE.RingGeometry(1.5, 1.58, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x8e9192, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.rotation.x = Math.PI / 3;
+    cubeGroup.add(ringMesh);
+
+    // Tail Particle Trail
+    const trailCount = 28;
+    const trailPositions = new Float32Array(trailCount * 3);
+    const trailColors = new Float32Array(trailCount * 3);
+    for (let i = 0; i < trailCount; i++) {
+      trailPositions[i * 3] = 0;
+      trailPositions[i * 3 + 1] = 0;
+      trailPositions[i * 3 + 2] = 0;
+      const alpha = 1 - (i / trailCount);
+      trailColors[i * 3] = 1.0;
+      trailColors[i * 3 + 1] = 0.3 * alpha;
+      trailColors[i * 3 + 2] = 0.1 * alpha;
+    }
+    const trailGeo = new THREE.BufferGeometry();
+    trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+    trailGeo.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+    const trailMat = new THREE.PointsMaterial({
+      size: 0.18,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending
+    });
+    const trailPoints = new THREE.Points(trailGeo, trailMat);
+    scene.add(trailPoints);
+
+    const history = [];
+
+    let currentY = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let targetX = 0;
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    window.addEventListener('resize', onResize);
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Compute scroll progression
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
+
+      // Path navigation: travel from right side of hero down through the center architectural spine
+      const pathRangeY = 13.5;
+      targetY = 7.0 - (progress * pathRangeY);
+
+      // Gentle serpentine sweep across the layout
+      targetX = Math.sin(progress * Math.PI * 3.2) * 5.2 + (progress > 0.15 && progress < 0.65 ? 4.8 : -4.8);
+
+      currentY += (targetY - currentY) * 0.08;
+      currentX += (targetX - currentX) * 0.08;
+
+      cubeGroup.position.set(currentX, currentY, 0);
+      cubeGroup.rotation.x += 0.02 + progress * 0.04;
+      cubeGroup.rotation.y += 0.025 + progress * 0.03;
+      ringMesh.rotation.z += 0.03;
+
+      // Update particle history
+      history.unshift({ x: currentX, y: currentY, z: 0 });
+      if (history.length > trailCount) history.pop();
+
+      const posAttr = trailGeo.attributes.position;
+      for (let i = 0; i < trailCount; i++) {
+        const pt = history[i] || { x: currentX, y: currentY, z: 0 };
+        posAttr.setXYZ(i, pt.x, pt.y, pt.z);
+      }
+      posAttr.needsUpdate = true;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+  })();
+
+  // --- ScrollExpand Component Logic ---
+  (function initScrollExpand() {
+    const trigger = document.getElementById('scroll-hero-trigger');
+    const frame = document.getElementById('expand-frame');
+    const image = document.getElementById('expand-image');
+    const dimmer = document.getElementById('media-dimmer');
+    if (!trigger || !frame || !image) return;
+
+    function update() {
+      const rect = trigger.getBoundingClientRect();
+      const totalDist = trigger.offsetHeight - window.innerHeight;
+      let progress = -rect.top / (totalDist > 0 ? totalDist : 1);
+      progress = Math.min(Math.max(progress, 0), 1);
+
+      // Smoothstep easing
+      const eased = progress * progress * (3 - 2 * progress);
+
+      // Frame starts centered (width ~42%, height ~58%, radius 24px) expanding to full bleed (0px radius)
+      const insetX = (1 - eased) * 29;
+      const insetY = (1 - eased) * 21;
+      const radius = (1 - eased) * 24;
+
+      frame.style.clipPath = `inset(${insetY}% ${insetX}% ${insetY}% ${insetX}% round ${radius}px)`;
+
+      // Image zoom eases back from 1.35 down to 1.05
+      const zoom = 1.35 - (eased * 0.30);
+      image.style.transform = `scale(${zoom})`;
+
+      if (dimmer) {
+        dimmer.style.opacity = `${0.55 - (eased * 0.25)}`;
+      }
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  })();
+
+  // --- React Bits AccordionGallery (5 Panels) ---
+  (function initAccordionGallery() {
+    const stage = document.getElementById('accordion-gallery');
+    if (!stage) return;
+    const panels = stage.querySelectorAll('.accordion-panel');
+    let activeIndex = 0;
+
+    function setActive(idx) {
+      if (idx < 0 || idx >= panels.length) return;
+      activeIndex = idx;
+      panels.forEach((p, i) => {
+        if (i === idx) {
+          p.classList.add('is-active');
+          p.classList.remove('is-collapsed', 'panel-left', 'panel-right');
+          p.setAttribute('aria-expanded', 'true');
+        } else {
+          p.classList.remove('is-active');
+          p.classList.add('is-collapsed');
+          p.setAttribute('aria-expanded', 'false');
+          if (i < idx) {
+            p.classList.add('panel-left');
+            p.classList.remove('panel-right');
+          } else {
+            p.classList.add('panel-right');
+            p.classList.remove('panel-left');
+          }
+        }
+      });
+    }
+
+    panels.forEach((p, i) => {
+      p.addEventListener('mouseenter', () => setActive(i));
+      p.addEventListener('click', () => setActive(i));
+      p.addEventListener('focus', () => setActive(i));
+    });
+
+    document.getElementById('accordion-prev-btn')?.addEventListener('click', () => {
+      setActive((activeIndex - 1 + panels.length) % panels.length);
+    });
+    document.getElementById('accordion-next-btn')?.addEventListener('click', () => {
+      setActive((activeIndex + 1) % panels.length);
+    });
+
+    stage.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActive((activeIndex + 1) % panels.length);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActive((activeIndex - 1 + panels.length) % panels.length);
+      }
+    });
+    setActive(0);
+  })();
+
+  // --- React Bits GooeyNav Interactive Implementation ---
+  (function initGooeyNav() {
+    const nav = document.getElementById('gooey-nav');
+    const filter = document.getElementById('gooey-filter');
+    const text = document.getElementById('gooey-text');
+    const ul = document.getElementById('gooey-ul');
+    if (!nav || !filter || !text || !ul) return;
+
+    const lis = ul.querySelectorAll('li');
+    let activeIdx = 0;
+
+    function movePill(li) {
+      const navRect = nav.getBoundingClientRect();
+      const liRect = li.getBoundingClientRect();
+      const left = liRect.left - navRect.left;
+      const top = liRect.top - navRect.top;
+      const width = liRect.width;
+      const height = liRect.height;
+
+      [filter, text].forEach(el => {
+        el.style.left = `${left}px`;
+        el.style.top = `${top}px`;
+        el.style.width = `${width}px`;
+        el.style.height = `${height}px`;
+      });
+      text.textContent = li.textContent.trim();
+    }
+
+    function spawnParticles(li) {
+      filter.innerHTML = '';
+      const colors = ['#ededed', '#c4c7c8', '#8e9192', '#ff4d1c'];
+      for (let i = 0; i < 14; i++) {
+        const p = document.createElement('span');
+        const pt = document.createElement('span');
+        p.className = 'particle';
+        pt.className = 'point';
+
+        const angle = (Math.PI * 2 * i) / 14 + (Math.random() * 0.4);
+        const startDist = 18 + Math.random() * 8;
+        const endDist = 38 + Math.random() * 24;
+        const sx = Math.cos(angle) * startDist;
+        const sy = Math.sin(angle) * startDist;
+        const ex = Math.cos(angle) * endDist;
+        const ey = Math.sin(angle) * endDist;
+
+        p.style.setProperty('--start-x', `${sx}px`);
+        p.style.setProperty('--start-y', `${sy}px`);
+        p.style.setProperty('--end-x', `${ex}px`);
+        p.style.setProperty('--end-y', `${ey}px`);
+        p.style.setProperty('--rotate', `${(Math.random() - 0.5) * 80}deg`);
+        p.style.setProperty('--time', `${550 + Math.random() * 250}ms`);
+        pt.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)]);
+
+        p.appendChild(pt);
+        filter.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+      }
+    }
+
+    lis.forEach((li, i) => {
+      li.addEventListener('click', (e) => {
+        lis.forEach(l => l.classList.remove('active'));
+        li.classList.add('active');
+        activeIdx = i;
+        movePill(li);
+        spawnParticles(li);
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      if (lis[activeIdx]) movePill(lis[activeIdx]);
+    });
+    if (lis[0]) movePill(lis[0]);
+  })();
+
+  // --- DecryptedText Scramble Effect ---
+  (function initDecryptedText() {
+    const chars = '0123456789ABCDEF_//-![]:<>abcdefghijklmnopqrstuvwxyz';
+    function decryptElement(el, speed = 35) {
+      if (el.dataset.decrypting === 'true') return;
+      el.dataset.decrypting = 'true';
+      const original = el.dataset.originalText || el.textContent;
+      el.dataset.originalText = original;
+
+      let iteration = 0;
+      const maxIterations = 14;
+      const interval = setInterval(() => {
+        el.textContent = original.split('').map((char, index) => {
+          if (char === ' ') return ' ';
+          if (index < (iteration / maxIterations) * original.length) {
+            return original[index];
+          }
+          return chars[Math.floor(Math.random() * chars.length)];
+        }).join('');
+
+        iteration++;
+        if (iteration >= maxIterations) {
+          clearInterval(interval);
+          el.textContent = original;
+          el.dataset.decrypting = 'false';
+        }
+      }, speed);
+    }
+
+    document.querySelectorAll('[data-decrypt]').forEach(el => {
+      el.dataset.originalText = el.textContent.trim();
+      const trigger = el.dataset.decryptTrigger || 'view';
+
+      if (trigger === 'hover') {
+        el.addEventListener('mouseenter', () => decryptElement(el));
+      }
+      if (trigger === 'view') {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              decryptElement(el);
+              observer.unobserve(el);
+            }
+          });
+        }, { threshold: 0.2 });
+        observer.observe(el);
+      }
+    });
+  })();
+
+  // --- CometDial Telemetry HUD Logic ---
+  (function initCometDial() {
+    const trackPath = document.getElementById('comet-track-path');
+    const headDot = document.getElementById('comet-head-dot');
+    const percentLabel = document.getElementById('comet-percentage');
+    const sectionLabel = document.getElementById('comet-active-section');
+    const pxLabel = document.getElementById('comet-px-readout');
+    const totalLength = 209.44;
+
+    function update() {
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const ratio = Math.min(Math.max(scrollY / maxScroll, 0), 1);
+      const pct = Math.round(ratio * 100);
+
+      if (trackPath) {
+        const offset = totalLength * (1 - ratio);
+        trackPath.style.strokeDashoffset = offset;
+      }
+      if (percentLabel) percentLabel.textContent = `${pct}%`;
+      if (pxLabel) pxLabel.textContent = `${Math.round(scrollY)} / ${Math.round(maxScroll)} px`;
+
+      // Update Section Readout
+      let active = 'HERO';
+      const sections = ['projects', 'stack', 'timeline', 'system'];
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= window.innerHeight * 0.45) {
+            active = id.toUpperCase();
+          }
+        }
+      });
+      if (sectionLabel) sectionLabel.textContent = active;
+    }
+
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  })();
+
+  // --- 3D Computer Workstation Stage + DitherVeil Canvas ---
+  (function initWorkstationScene() {
+    const canvas3D = document.getElementById('three-workstation-canvas');
+    const canvasDither = document.getElementById('dither-veil-canvas');
+    const container = document.getElementById('workstation-stage');
+    if (!canvas3D || !canvasDither || !container || typeof THREE === 'undefined') return;
+
+    // Workstation Scene Setup
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas3D, alpha: true, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 2.2, 7.8);
+    camera.lookAt(0, 0, 0);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // Monolithic Rack / Terminal Chassis
+    const baseGeo = new THREE.BoxGeometry(3.6, 0.28, 2.4);
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x1f1f1f, roughness: 0.4, metalness: 0.6 });
+    const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+    baseMesh.position.y = -1.2;
+    group.add(baseMesh);
+
+    // CRT / Bezel Housing
+    const monitorGeo = new THREE.BoxGeometry(3.2, 2.2, 1.4);
+    const monitorMat = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.3 });
+    const monitorMesh = new THREE.Mesh(monitorGeo, monitorMat);
+    monitorMesh.position.set(0, 0.2, -0.2);
+    group.add(monitorMesh);
+
+    // Terminal Screen Face
+    const screenGeo = new THREE.PlaneGeometry(2.7, 1.8);
+    const screenMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+    const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+    screenMesh.position.set(0, 0.2, 0.52);
+    group.add(screenMesh);
+
+    // Terminal Screen Code Lines
+    const textCanvas = document.createElement('canvas');
+    textCanvas.width = 512;
+    textCanvas.height = 340;
+    const ctx = textCanvas.getContext('2d');
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, 512, 340);
+    ctx.fillStyle = '#ff4d1c';
+    ctx.font = '22px monospace';
+    ctx.fillText('> kernel_init(x86_64, arm64)', 24, 40);
+    ctx.fillStyle = '#ededed';
+    ctx.font = '16px monospace';
+    ctx.fillText('• BPF_PROG_TYPE_SCHED_CLS loaded [OK]', 24, 80);
+    ctx.fillText('• AST schema validated: 42 rules', 24, 115);
+    ctx.fillText('• Lock-free disruptor ring active', 24, 150);
+    ctx.fillText('• Bipartite match latency: 11.8ms', 24, 185);
+    ctx.fillStyle = '#6b6b6b';
+    ctx.fillText('// Systems operational. Status 200 OK', 24, 235);
+    const textTexture = new THREE.CanvasTexture(textCanvas);
+    const codePlaneMat = new THREE.MeshBasicMaterial({ map: textTexture, transparent: true });
+    const codePlane = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.6), codePlaneMat);
+    codePlane.position.set(0, 0.2, 0.53);
+    group.add(codePlane);
+
+    // Keyboard Deck
+    const kbGeo = new THREE.BoxGeometry(2.6, 0.12, 1.0);
+    const kbMat = new THREE.MeshStandardMaterial({ color: 0x181818 });
+    const kbMesh = new THREE.Mesh(kbGeo, kbMat);
+    kbMesh.position.set(0, -0.9, 1.0);
+    kbMesh.rotation.x = 0.15;
+    group.add(kbMesh);
+
+    // Diagnostic LEDs
+    for (let i = 0; i < 4; i++) {
+      const ledGeo = new THREE.SphereGeometry(0.04, 12, 12);
+      const ledMat = new THREE.MeshBasicMaterial({ color: i === 0 ? 0xff4d1c : 0xededed });
+      const led = new THREE.Mesh(ledGeo, ledMat);
+      led.position.set(-1.2 + (i * 0.18), -0.7, 1.35);
+      group.add(led);
+    }
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    dirLight.position.set(5, 8, 6);
+    scene.add(dirLight);
+
+    // --- Interactive DitherVeil Canvas Overlay ---
+    const ditherCtx = canvasDither.getContext('2d');
+    let ditherActive = true;
+    let pointerX = container.clientWidth / 2;
+    let pointerY = container.clientHeight / 2;
+    let bursts = [];
+
+    function resizeDither() {
+      canvasDither.width = container.clientWidth;
+      canvasDither.height = container.clientHeight;
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resizeDither);
+    resizeDither();
+
+    container.addEventListener('mousemove', (e) => {
+      const rect = container.getBoundingClientRect();
+      pointerX = e.clientX - rect.left;
+      pointerY = e.clientY - rect.top;
+      // Slight 3D rotation based on cursor
+      group.rotation.y = ((pointerX / container.clientWidth) - 0.5) * 0.8;
+      group.rotation.x = ((pointerY / container.clientHeight) - 0.5) * 0.4;
+    });
+
+    container.addEventListener('click', (e) => {
+      const rect = container.getBoundingClientRect();
+      bursts.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, r: 0, maxR: 260, alpha: 1.0 });
+    });
+
+    document.getElementById('toggle-dither-btn')?.addEventListener('click', () => {
+      ditherActive = !ditherActive;
+      const dot = document.getElementById('dither-state-dot');
+      const label = document.getElementById('dither-toggle-label');
+      if (dot) dot.style.backgroundColor = ditherActive ? '#ff4d1c' : '#6b6b6b';
+      if (label) label.textContent = ditherActive ? 'Dither: Veil Active' : 'Dither: Bypassed';
+    });
+
+    document.getElementById('reset-cam-btn')?.addEventListener('click', () => {
+      group.rotation.set(0, 0, 0);
+    });
+
+    let wireframeOn = false;
+    document.getElementById('toggle-wireframe-btn')?.addEventListener('click', () => {
+      wireframeOn = !wireframeOn;
+      monitorMat.wireframe = wireframeOn;
+      baseMat.wireframe = wireframeOn;
+      kbMat.wireframe = wireframeOn;
+    });
+
+    // Render loop
+    function renderWorkstation() {
+      requestAnimationFrame(renderWorkstation);
+      renderer.render(scene, camera);
+
+      // Render procedural Dither Curtain
+      ditherCtx.clearRect(0, 0, canvasDither.width, canvasDither.height);
+      if (ditherActive) {
+        const w = canvasDither.width;
+        const h = canvasDither.height;
+        const step = 4;
+        ditherCtx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+
+        for (let y = 0; y < h; y += step) {
+          for (let x = 0; x < w; x += step) {
+            const dx = x - pointerX;
+            const dy = y - pointerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // Radius reveal opening
+            if (dist < 120) continue;
+
+            // Check click bursts
+            let burstCleared = false;
+            for (let b = 0; b < bursts.length; b++) {
+              const bDist = Math.abs(dist - bursts[b].r);
+              if (bDist < 25) {
+                burstCleared = true;
+                break;
+              }
+            }
+            if (burstCleared) continue;
+
+            // Dither pattern calculation
+            if ((x + y) % 8 === 0) {
+              ditherCtx.fillRect(x, y, 2, 2);
+            }
+          }
+        }
+
+        // Advance bursts
+        for (let b = bursts.length - 1; b >= 0; b--) {
+          bursts[b].r += 6;
+          if (bursts[b].r > bursts[b].maxR) {
+            bursts.splice(b, 1);
+          }
+        }
+      }
+    }
+    renderWorkstation();
+  })();
+
+  // --- Command Palette Navigation Handler ---
+  function navigateCmd(selector) {
+    document.getElementById('cmdk-backdrop').classList.add('hidden');
+    document.getElementById('cmdk-backdrop').classList.remove('flex');
+    const target = document.querySelector(selector);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  const cmdkBtn = document.getElementById('open-cmdk-btn');
+  const cmdkBackdrop = document.getElementById('cmdk-backdrop');
+  const cmdkInput = document.getElementById('cmdk-input');
+
+  function openCmdk() {
+    cmdkBackdrop.classList.remove('hidden');
+    cmdkBackdrop.classList.add('flex');
+    cmdkInput.focus();
+  }
+  function closeCmdk() {
+    cmdkBackdrop.classList.add('hidden');
+    cmdkBackdrop.classList.remove('flex');
+  }
+
+  cmdkBtn?.addEventListener('click', openCmdk);
+  cmdkBackdrop?.addEventListener('click', (e) => {
+    if (e.target === cmdkBackdrop) closeCmdk();
+  });
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      if (cmdkBackdrop.classList.contains('hidden')) openCmdk();
+      else closeCmdk();
+    }
+    if (e.key === 'Escape' && !cmdkBackdrop.classList.contains('hidden')) {
+      closeCmdk();
+    }
+  });
+
+  // Spotlight card mouse tracker
+  document.querySelectorAll('.spotlight-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+    });
+  });
+</script>
+</body>
+</html>

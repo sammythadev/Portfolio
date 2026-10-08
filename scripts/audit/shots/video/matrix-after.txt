@@ -1,0 +1,95 @@
+
+────────────────────────────────────────────────────────────────────────
+desktop / unthrottled
+────────────────────────────────────────────────────────────────────────
+clip mounted        : yes
+revealed after      : 1340ms
+playing after       : 1340ms
+element unmounted   : no
+mp4 responses       : 206
+failed requests     : none
+control             : none (expected)
+final               : {"has":true,"shown":true,"paused":false,"rs":4,"buffered":10,"t":6.79,"reqs":1,"control":false}
+
+────────────────────────────────────────────────────────────────────────
+desktop / 4 Mbps + 60ms (vetoed by the old throughput gate)
+────────────────────────────────────────────────────────────────────────
+clip mounted        : yes
+revealed after      : 5330ms
+playing after       : 5330ms
+element unmounted   : no
+mp4 responses       : 206
+failed requests     : none
+control             : none (expected)
+final               : {"has":true,"shown":true,"paused":false,"rs":4,"buffered":10,"t":2.78,"reqs":1,"control":false}
+
+────────────────────────────────────────────────────────────────────────
+desktop / 400 kbps + 300ms (3g) — downloads behind the photograph
+────────────────────────────────────────────────────────────────────────
+clip mounted        : NO
+revealed after      : never
+playing after       : never
+element unmounted   : no
+mp4 responses       : none
+failed requests     : none
+control             : none (expected)
+final               : null
+
+────────────────────────────────────────────────────────────────────────
+phone 390x844 (hover:none, touch)
+────────────────────────────────────────────────────────────────────────
+clip mounted        : yes
+revealed after      : 1398ms
+playing after       : 1398ms
+element unmounted   : no
+mp4 responses       : 206
+failed requests     : none
+control             : none (expected)
+final               : {"has":true,"shown":true,"paused":false,"rs":4,"buffered":10,"t":6.69,"reqs":1,"control":false}
+
+────────────────────────────────────────────────────────────────────────
+laptop 1280x800
+────────────────────────────────────────────────────────────────────────
+clip mounted        : yes
+revealed after      : 1277ms
+playing after       : 1277ms
+element unmounted   : no
+mp4 responses       : 206
+failed requests     : none
+control             : none (expected)
+final               : {"has":true,"shown":true,"paused":false,"rs":4,"buffered":10,"t":6.8,"reqs":1,"control":false}
+
+────────────────────────────────────────────────────────────────────────
+desktop / prefers-reduced-motion — must never request
+────────────────────────────────────────────────────────────────────────
+clip mounted        : NO
+revealed after      : never
+playing after       : never
+element unmounted   : no
+mp4 responses       : none
+failed requests     : none
+control             : none (expected)
+final               : {"has":false,"shown":false,"paused":null,"rs":-1,"buffered":0,"t":null,"reqs":0,"control":false}
+
+────────────────────────────────────────────────────────────────────────
+desktop / save-data — must never request
+────────────────────────────────────────────────────────────────────────
+clip mounted        : NO
+revealed after      : never
+playing after       : never
+element unmounted   : no
+mp4 responses       : none
+failed requests     : none
+control             : none (expected)
+final               : {"has":false,"shown":false,"paused":null,"rs":-1,"buffered":0,"t":null,"reqs":0,"control":false}
+
+────────────────────────────────────────────────────────────────────────
+summary
+────────────────────────────────────────────────────────────────────────
+desktop / unthrottled                                      mounted=y reveal= 1340ms played= 1340ms failed=0 st=206
+desktop / 4 Mbps + 60ms (vetoed by the old throughput gate) mounted=y reveal= 5330ms played= 5330ms failed=0 st=206
+desktop / 400 kbps + 300ms (3g) — downloads behind the photograph mounted=n reveal=    -ms played=    -ms failed=0 st=none
+phone 390x844 (hover:none, touch)                          mounted=y reveal= 1398ms played= 1398ms failed=0 st=206
+laptop 1280x800                                            mounted=y reveal= 1277ms played= 1277ms failed=0 st=206
+desktop / prefers-reduced-motion — must never request      mounted=n reveal=    -ms played=    -ms failed=0 st=none
+desktop / save-data — must never request                   mounted=n reveal=    -ms played=    -ms failed=0 st=none

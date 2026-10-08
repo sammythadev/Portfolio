@@ -1,0 +1,4162 @@
+# This contains all design prompts useed to create the design index.html 
+
+react bit components useed## Integrate the <GooeyNav /> component from React Bits
+
+You are helping integrate an open-source React component into an existing application.
+
+### Component: GooeyNav
+### Variant: JavaScript + CSS
+
+
+---
+
+### Usage Example
+```jsx
+import GooeyNav from './GooeyNav'
+
+// update with your own items
+const items = [
+  { label: "Home", href: "#" },
+  { label: "About", href: "#" },
+  { label: "Contact", href: "#" },
+];
+
+<div style={{ height: '600px', position: 'relative' }}>
+  <GooeyNav
+    items={items}
+    particleCount={15}
+    particleDistances={[90, 10]}
+    particleR={100}
+    initialActiveIndex={0}
+    animationTime={600}
+    timeVariance={300}
+    colors={[1, 2, 3, 1, 2, 3, 1, 4]}
+  />
+</div>
+```
+
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| items | GooeyNavItem[] | [] | Array of navigation items. |
+| animationTime | number | 600 | Duration (ms) of the main animation. |
+| particleCount | number | 15 | Number of bubble particles per transition. |
+| particleDistances | [number, number] | [90, 10] | Outer and inner distances of bubble spread. |
+| particleR | number | 100 | Radius factor influencing random particle rotation. |
+| timeVariance | number | 300 | Random time variance (ms) for particle animations. |
+| colors | number[] | [1, 2, 3, 1, 2, 3, 1, 4] | Color indices used when creating bubble particles. |
+| initialActiveIndex | number | 0 | Which item is selected on mount. |
+
+### Full Component Source
+```jsx
+'use client';
+
+import { useRef, useEffect, useState } from 'react';
+import './GooeyNav.css';
+
+const GooeyNav = ({
+  items,
+  animationTime = 600,
+  particleCount = 15,
+  particleDistances = [90, 10],
+  particleR = 100,
+  timeVariance = 300,
+  colors = [1, 2, 3, 1, 2, 3, 1, 4],
+  initialActiveIndex = 0
+}) => {
+  const containerRef = useRef(null);
+  const navRef = useRef(null);
+  const filterRef = useRef(null);
+  const textRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
+
+  const noise = (n = 1) => n / 2 - Math.random() * n;
+
+  const getXY = (distance, pointIndex, totalPoints) => {
+    const angle = ((360 + noise(8)) / totalPoints) * pointIndex * (Math.PI / 180);
+    return [distance * Math.cos(angle), distance * Math.sin(angle)];
+  };
+
+  const createParticle = (i, t, d, r) => {
+    let rotate = noise(r / 10);
+    return {
+      start: getXY(d[0], particleCount - i, particleCount),
+      end: getXY(d[1] + noise(7), particleCount - i, particleCount),
+      time: t,
+      scale: 1 + noise(0.2),
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotate: rotate > 0 ? (rotate + r / 20) * 10 : (rotate - r / 20) * 10
+    };
+  };
+
+  const makeParticles = element => {
+    const d = particleDistances;
+    const r = particleR;
+    const bubbleTime = animationTime * 2 + timeVariance;
+    element.style.setProperty('--time', `${bubbleTime}ms`);
+
+    for (let i = 0; i < particleCount; i++) {
+      const t = animationTime * 2 + noise(timeVariance * 2);
+      const p = createParticle(i, t, d, r);
+      element.classList.remove('active');
+
+      setTimeout(() => {
+        const particle = document.createElement('span');
+        const point = document.createElement('span');
+        particle.classList.add('particle');
+        particle.style.setProperty('--start-x', `${p.start[0]}px`);
+        particle.style.setProperty('--start-y', `${p.start[1]}px`);
+        particle.style.setProperty('--end-x', `${p.end[0]}px`);
+        particle.style.setProperty('--end-y', `${p.end[1]}px`);
+        particle.style.setProperty('--time', `${p.time}ms`);
+        particle.style.setProperty('--scale', `${p.scale}`);
+        particle.style.setProperty('--color', `var(--color-${p.color}, white)`);
+        particle.style.setProperty('--rotate', `${p.rotate}deg`);
+
+        point.classList.add('point');
+        particle.appendChild(point);
+        element.appendChild(particle);
+        requestAnimationFrame(() => {
+          element.classList.add('active');
+        });
+        setTimeout(() => {
+          try {
+            element.removeChild(particle);
+          } catch {
+            // Do nothing
+          }
+        }, t);
+      }, 30);
+    }
+  };
+
+  const updateEffectPosition = element => {
+    if (!containerRef.current || !filterRef.current || !textRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const pos = element.getBoundingClientRect();
+
+    const styles = {
+      left: `${pos.x - containerRect.x}px`,
+      top: `${pos.y - containerRect.y}px`,
+      width: `${pos.width}px`,
+      height: `${pos.height}px`
+    };
+    Object.assign(filterRef.current.style, styles);
+    Object.assign(textRef.current.style, styles);
+    textRef.current.innerText = element.innerText;
+  };
+
+  const handleClick = (e, index) => {
+    const liEl = e.currentTarget;
+    if (activeIndex === index) return;
+
+    setActiveIndex(index);
+    updateEffectPosition(liEl);
+
+    if (filterRef.current) {
+      const particles = filterRef.current.querySelectorAll('.particle');
+      particles.forEach(p => filterRef.current.removeChild(p));
+    }
+
+    if (textRef.current) {
+      textRef.current.classList.remove('active');
+
+      void textRef.current.offsetWidth;
+      textRef.current.classList.add('active');
+    }
+
+    if (filterRef.current) {
+      makeParticles(filterRef.current);
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const liEl = e.currentTarget.parentElement;
+      if (liEl) {
+        handleClick({ currentTarget: liEl }, index);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!navRef.current || !containerRef.current) return;
+    const activeLi = navRef.current.querySelectorAll('li')[activeIndex];
+    if (activeLi) {
+      updateEffectPosition(activeLi);
+      textRef.current?.classList.add('active');
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      const currentActiveLi = navRef.current?.querySelectorAll('li')[activeIndex];
+      if (currentActiveLi) {
+        updateEffectPosition(currentActiveLi);
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
+  }, [activeIndex]);
+
+  return (
+    <div className="gooey-nav-container" ref={containerRef}>
+      <nav>
+        <ul ref={navRef}>
+          {items.map((item, index) => (
+            <li key={index} className={activeIndex === index ? 'active' : ''}>
+              <a href={item.href} onClick={e => handleClick(e, index)} onKeyDown={e => handleKeyDown(e, index)}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <span className="effect filter" ref={filterRef} />
+      <span className="effect text" ref={textRef} />
+    </div>
+  );
+};
+
+export default GooeyNav;
+
+```
+
+### Component CSS
+```css
+:root {
+  --linear-ease: linear(
+    0,
+    0.068,
+    0.19 2.7%,
+    0.804 8.1%,
+    1.037,
+    1.199 13.2%,
+    1.245,
+    1.27 15.8%,
+    1.274,
+    1.272 17.4%,
+    1.249 19.1%,
+    0.996 28%,
+    0.949,
+    0.928 33.3%,
+    0.926,
+    0.933 36.8%,
+    1.001 45.6%,
+    1.013,
+    1.019 50.8%,
+    1.018 54.4%,
+    1 63.1%,
+    0.995 68%,
+    1.001 85%,
+    1
+  );
+}
+
+.gooey-nav-container {
+  position: relative;
+}
+
+.gooey-nav-container nav {
+  display: flex;
+  position: relative;
+  transform: translate3d(0, 0, 0.01px);
+}
+
+.gooey-nav-container nav ul {
+  display: flex;
+  gap: 2em;
+  list-style: none;
+  padding: 0 1em;
+  margin: 0;
+  position: relative;
+  z-index: 3;
+  color: white;
+  text-shadow: 0 1px 1px hsl(205deg 30% 10% / 0.2);
+}
+
+.gooey-nav-container nav ul li {
+  border-radius: 100vw;
+  position: relative;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease;
+  box-shadow: 0 0 0.5px 1.5px transparent;
+  color: white;
+}
+
+.gooey-nav-container nav ul li a {
+  display: inline-block;
+  padding: 0.6em 1em;
+}
+
+.gooey-nav-container nav ul li:focus-within:has(:focus-visible) {
+  box-shadow: 0 0 0.5px 1.5px white;
+}
+
+.gooey-nav-container nav ul li::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: white;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+.gooey-nav-container nav ul li.active {
+  color: black;
+  text-shadow: none;
+}
+
+.gooey-nav-container nav ul li.active::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gooey-nav-container .effect {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 1;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  z-index: 1;
+}
+
+.gooey-nav-container .effect.text {
+  color: white;
+  transition: color 0.3s ease;
+}
+
+.gooey-nav-container .effect.text.active {
+  color: black;
+}
+
+.gooey-nav-container .effect.filter {
+  filter: blur(7px) contrast(100) blur(0);
+  mix-blend-mode: lighten;
+}
+
+.gooey-nav-container .effect.filter::before {
+  content: '';
+  position: absolute;
+  inset: -75px;
+  z-index: -2;
+  background: black;
+}
+
+.gooey-nav-container .effect.filter::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  transform: scale(0);
+  opacity: 0;
+  z-index: -1;
+  border-radius: 100vw;
+}
+
+.gooey-nav-container .effect.active::after {
+  animation: pill 0.3s ease both;
+}
+
+@keyframes pill {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.particle,
+.point {
+  display: block;
+  opacity: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+  transform-origin: center;
+}
+
+.particle {
+  --time: 5s;
+  position: absolute;
+  top: calc(50% - 8px);
+  left: calc(50% - 8px);
+  animation: particle calc(var(--time)) ease 1 -350ms;
+}
+
+.point {
+  background: var(--color);
+  opacity: 1;
+  animation: point calc(var(--time)) ease 1 -350ms;
+}
+
+@keyframes particle {
+  0% {
+    transform: rotate(0deg) translate(calc(var(--start-x)), calc(var(--start-y)));
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+
+  70% {
+    transform: rotate(calc(var(--rotate) * 0.5)) translate(calc(var(--end-x) * 1.2), calc(var(--end-y) * 1.2));
+    opacity: 1;
+    animation-timing-function: ease;
+  }
+
+  85% {
+    transform: rotate(calc(var(--rotate) * 0.66)) translate(calc(var(--end-x)), calc(var(--end-y)));
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(calc(var(--rotate) * 1.2)) translate(calc(var(--end-x) * 0.5), calc(var(--end-y) * 0.5));
+    opacity: 1;
+  }
+}
+
+@keyframes point {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+
+  25% {
+    transform: scale(calc(var(--scale) * 0.25));
+  }
+
+  38% {
+    opacity: 1;
+  }
+
+  65% {
+    transform: scale(var(--scale));
+    opacity: 1;
+    animation-timing-function: ease;
+  }
+
+  85% {
+    transform: scale(var(--scale));
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+```
+
+### Integration Instructions
+1. Install any listed dependencies.
+2. Copy the component source into the appropriate directory in the project.
+3. Import the CSS file alongside the component.
+4. Import and render the component using the usage example above as a starting point.
+5. Adjust props as needed for the specific use case — refer to the props table for all available options.
+
+### More from React Bits
+The full library index, including everything reactbits.dev offers, is at https://reactbits.dev/llms.txt — fetch it if this component is not the right fit or the project needs more pieces.
+\
+
+
+## Integrate the <DitherVeil /> component from React Bits
+
+You are helping integrate an open-source React component into an existing application.
+
+### Component: DitherVeil
+### Variant: JavaScript + CSS
+### Dependencies: ogl
+
+---
+
+### Usage Example
+```jsx
+import DitherVeil from './DitherVeil';
+
+<div style={{ width: '100%', height: '600px', position: 'relative' }}>
+  <DitherVeil
+    src="https://images.unsplash.com/photo-1737071371043-761e02b1ef95?q=80&w=1400&auto=format&fit=crop"
+    pattern="floyd"
+    pixelSize={2}
+    inkColor="#120f17"
+    paperColor="#f4f1ea"
+    revealRadius={200}
+    softness={0.6}
+    linger={1}
+  />
+</div>
+```
+
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| src | string | 'https://images.unsplash.com/...' | Image to veil. Must be served with CORS headers. |
+| fit | 'contain' | 'cover' | 'contain' | Show the whole image on the ink, or crop it to fill the container. |
+| pattern | 'bayer' | 'noise' | 'atkinson' | 'floyd' | 'lines' | 'floyd' | How the image is broken into dots: an ordered Bayer grid, blue noise stipple, Atkinson or Floyd-Steinberg error diffusion, or diagonal engraving lines. |
+| palette | 'duotone' | 'rgb' | 'duotone' | Duotone maps brightness between the ink and paper colours. RGB dithers each channel for a retro colour look. |
+| pixelSize | number | 2 | Size of each dither cell, in px. |
+| levels | number | 2 | Tones per channel. 2 is pure 1-bit, higher values add in-between shades. |
+| inkColor | string | '#120f17' | Colour of the darkest tone. |
+| paperColor | string | '#f4f1ea' | Colour of the lightest tone. |
+| contrast | number | 1.15 | Tonal contrast applied before dithering. |
+| brightness | number | 0 | Shifts the image lighter or darker before dithering. |
+| revealRadius | number | 200 | Radius of the full-colour window around the cursor, in px. |
+| softness | number | 0.6 | How much of the reveal edge dissolves through the dither. 0 is a hard cut. |
+| linger | number | 1 | Seconds the revealed trail takes to knit back into dither. 0 turns the trail off. |
+| rimColor | string | '#a78bfa' | Colour of the cells along the dissolving edge. |
+| rim | number | 0 | Thickness of the coloured rim on the dissolving edge. 0 hides it. |
+| reverse | boolean | false | Start in full colour and dither wherever the cursor goes. |
+| wander | boolean | false | Let the reveal drift around on its own while the pointer is away. |
+| clickBurst | boolean | true | Clicking sends a ring of colour rippling out across the image. |
+| className | string | '' | Extra classes on the container. |
+| style | CSSProperties | - | Inline styles on the container. |
+
+### Full Component Source
+```jsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { Renderer, Program, Mesh, Triangle, Texture, RenderTarget } from 'ogl';
+
+import './DitherVeil.css';
+
+const DEFAULT_SRC = 'https://images.unsplash.com/photo-1737071371043-761e02b1ef95?q=80&w=1400&auto=format&fit=crop';
+
+const ORDERED = { bayer: 0, noise: 1, lines: 2 };
+
+const KERNELS = {
+  atkinson: [
+    [1, 0, 1 / 8],
+    [2, 0, 1 / 8],
+    [-1, 1, 1 / 8],
+    [0, 1, 1 / 8],
+    [1, 1, 1 / 8],
+    [0, 2, 1 / 8]
+  ],
+  floyd: [
+    [1, 0, 7 / 16],
+    [-1, 1, 3 / 16],
+    [0, 1, 5 / 16],
+    [1, 1, 1 / 16]
+  ]
+};
+
+const MASK_SCALE = 0.5;
+const MAX_BURSTS = 4;
+const BURST_SECONDS = 1.2;
+const HOLD = 1.6;
+const INTRO_MS = 1100;
+
+const hexToRgb = hex => {
+  let h = String(hex || '').replace('#', '');
+  if (h.length === 3) h = h.replace(/./g, c => c + c);
+  const n = parseInt(h.slice(0, 6), 16);
+  return Number.isNaN(n) ? [0, 0, 0] : [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+};
+
+const fitScale = (w, h, iw, ih, contain) => {
+  const ratio = w / h / (iw / ih);
+  if (contain) return ratio > 1 ? [ratio, 1] : [1, 1 / ratio];
+  return ratio > 1 ? [1, 1 / ratio] : [ratio, 1];
+};
+
+const wanderAt = (t, w, h) => [
+  w * (0.5 + 0.33 * Math.sin(t * 0.53) + 0.08 * Math.sin(t * 1.31 + 0.6)),
+  h * (0.5 + 0.28 * Math.sin(t * 0.71 + 1.1) + 0.07 * Math.cos(t * 1.57))
+];
+
+const measureEdge = (context, image) => {
+  const size = 32;
+  context.canvas.width = size;
+  context.canvas.height = size;
+  context.drawImage(image, 0, 0, size, size);
+  const data = context.getImageData(0, 0, size, size).data;
+  const sum = [0, 0, 0];
+  const squares = [0, 0, 0];
+  let count = 0;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if (x > 0 && y > 0 && x < size - 1 && y < size - 1) continue;
+      for (let c = 0; c < 3; c++) {
+        const v = data[(y * size + x) * 4 + c] / 255;
+        sum[c] += v;
+        squares[c] += v * v;
+      }
+      count++;
+    }
+  }
+  const matte = [sum[0] / count, sum[1] / count, sum[2] / count];
+  const spread =
+    matte.reduce((total, mean, c) => total + Math.sqrt(Math.max(0, squares[c] / count - mean * mean)), 0) / 3;
+  return { matte, plain: spread < 0.06 };
+};
+
+let blueNoise = null;
+
+const getBlueNoise = () => {
+  if (blueNoise) return blueNoise;
+  const size = 64;
+  const n = size * size;
+  const wrap = size - 1;
+  const taps = [];
+  for (let dy = -6; dy <= 6; dy++) {
+    for (let dx = -6; dx <= 6; dx++) taps.push(dx, dy, Math.exp(-(dx * dx + dy * dy) / 4.5));
+  }
+  const energy = new Float32Array(n);
+  const on = new Uint8Array(n);
+  const splat = (i, sign) => {
+    const x = i % size;
+    const y = (i - x) / size;
+    for (let k = 0; k < taps.length; k += 3) {
+      energy[((y + taps[k + 1]) & wrap) * size + ((x + taps[k]) & wrap)] += sign * taps[k + 2];
+    }
+  };
+  const find = (state, highest) => {
+    let best = 0;
+    let value = highest ? -Infinity : Infinity;
+    for (let i = 0; i < n; i++) {
+      if (on[i] !== state) continue;
+      if (highest ? energy[i] > value : energy[i] < value) {
+        value = energy[i];
+        best = i;
+      }
+    }
+    return best;
+  };
+  let seed = 7;
+  const random = () => {
+    seed = (seed * 16807) % 2147483647;
+    return seed / 2147483647;
+  };
+  const initial = Math.round(n * 0.1);
+  for (let placed = 0; placed < initial; ) {
+    const i = Math.floor(random() * n);
+    if (on[i]) continue;
+    on[i] = 1;
+    splat(i, 1);
+    placed++;
+  }
+  for (let guard = 0; guard < n; guard++) {
+    const cluster = find(1, true);
+    on[cluster] = 0;
+    splat(cluster, -1);
+    const gap = find(0, false);
+    on[gap] = 1;
+    splat(gap, 1);
+    if (gap === cluster) break;
+  }
+  const seedOn = on.slice();
+  const seedEnergy = energy.slice();
+  const rank = new Uint16Array(n);
+  for (let r = initial - 1; r >= 0; r--) {
+    const cluster = find(1, true);
+    on[cluster] = 0;
+    splat(cluster, -1);
+    rank[cluster] = r;
+  }
+  on.set(seedOn);
+  energy.set(seedEnergy);
+  for (let r = initial; r < n; r++) {
+    const gap = find(0, false);
+    on[gap] = 1;
+    splat(gap, 1);
+    rank[gap] = r;
+  }
+  const data = new Uint8Array(n * 4);
+  for (let i = 0; i < n; i++) {
+    const v = Math.floor((rank[i] / n) * 256);
+    data[i * 4] = v;
+    data[i * 4 + 1] = v;
+    data[i * 4 + 2] = v;
+    data[i * 4 + 3] = 255;
+  }
+  blueNoise = data;
+  return data;
+};
+
+const diffuse = (pixels, cols, rows, kernel, levels, rgb, grade) => {
+  const channels = rgb ? 3 : 1;
+  const values = new Float32Array(cols * rows * channels);
+  for (let i = 0; i < cols * rows; i++) {
+    const r = pixels[i * 4] / 255;
+    const g = pixels[i * 4 + 1] / 255;
+    const b = pixels[i * 4 + 2] / 255;
+    if (rgb) {
+      values[i * 3] = grade(r);
+      values[i * 3 + 1] = grade(g);
+      values[i * 3 + 2] = grade(b);
+    } else {
+      values[i] = grade(0.2126 * r + 0.7152 * g + 0.0722 * b);
+    }
+  }
+  const steps = levels - 1;
+  const out = new Uint8Array(cols * rows * 4);
+  for (let y = 0; y < rows; y++) {
+    const dir = y & 1 ? -1 : 1;
+    for (let i = 0; i < cols; i++) {
+      const x = dir > 0 ? i : cols - 1 - i;
+      const p = y * cols + x;
+      for (let c = 0; c < channels; c++) {
+        const old = values[p * channels + c];
+        const q = Math.min(steps, Math.max(0, Math.round(old * steps))) / steps;
+        const err = old - q;
+        const byte = Math.round(q * 255);
+        if (rgb) out[p * 4 + c] = byte;
+        else out[p * 4] = out[p * 4 + 1] = out[p * 4 + 2] = byte;
+        for (let k = 0; k < kernel.length; k++) {
+          const nx = x + kernel[k][0] * dir;
+          const ny = y + kernel[k][1];
+          if (nx < 0 || nx >= cols || ny >= rows) continue;
+          values[(ny * cols + nx) * channels + c] += err * kernel[k][2];
+        }
+      }
+      out[p * 4 + 3] = 255;
+    }
+  }
+  return out;
+};
+
+const vertex = `#version 300 es
+in vec2 position;
+in vec2 uv;
+out vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position, 0.0, 1.0);
+}
+`;
+
+const maskFragment = `#version 300 es
+precision highp float;
+
+uniform sampler2D tPrev;
+uniform vec2 uSize;
+uniform vec2 uFrom;
+uniform vec2 uTo;
+uniform float uRadius;
+uniform float uSoftness;
+uniform float uStrength;
+uniform float uFade;
+uniform float uHold;
+
+in vec2 vUv;
+out vec4 fragColor;
+
+float strokeDistance(vec2 p, vec2 a, vec2 b) {
+  vec2 ab = b - a;
+  float h = clamp(dot(p - a, ab) / max(dot(ab, ab), 0.0001), 0.0, 1.0);
+  return length(p - a - ab * h);
+}
+
+void main() {
+  vec2 p = vec2(vUv.x, 1.0 - vUv.y) * uSize;
+  float trail = max(texture(tPrev, vUv).r - uFade, 0.0);
+  float band = max(uRadius * uSoftness, 1.0) * uHold;
+  float d = strokeDistance(p, uFrom, uTo);
+  trail = max(trail, clamp((uRadius - d) / band, 0.0, 1.0) * uStrength);
+  fragColor = vec4(trail, 0.0, 0.0, 1.0);
+}
+`;
+
+const viewFragment = `#version 300 es
+precision highp float;
+precision highp int;
+
+uniform sampler2D tImage;
+uniform sampler2D tMask;
+uniform sampler2D tNoise;
+uniform sampler2D tDiffused;
+uniform vec2 uResolution;
+uniform vec2 uCover;
+uniform float uLod;
+uniform float uCell;
+uniform int uPattern;
+uniform int uPalette;
+uniform float uLevels;
+uniform vec3 uInk;
+uniform vec3 uPaper;
+uniform vec3 uRimColor;
+uniform float uRim;
+uniform float uContrast;
+uniform float uBrightness;
+uniform float uReverse;
+uniform float uIntro;
+uniform float uHold;
+uniform vec3 uMatte;
+uniform float uKey;
+uniform vec2 uSize;
+uniform vec4 uBursts[4];
+uniform float uBurstWidth;
+
+in vec2 vUv;
+out vec4 fragColor;
+
+float bayer(vec2 cell) {
+  ivec2 p = ivec2(mod(cell, 8.0));
+  int v = p.x ^ p.y;
+  int m = ((v & 1) << 5) | ((p.y & 1) << 4) | ((v & 2) << 2) | ((p.y & 2) << 1) | ((v & 4) >> 1) | ((p.y & 4) >> 2);
+  return (float(m) + 0.5) / 64.0;
+}
+
+float blueNoise(vec2 cell) {
+  return (texelFetch(tNoise, ivec2(mod(cell, 64.0)), 0).r * 255.0 + 0.5) / 256.0;
+}
+
+float engraving(vec2 cell) {
+  float period = 6.0;
+  float f = (mod(cell.x + cell.y, period) + 0.5) / period;
+  return clamp(abs(f * 2.0 - 1.0) + (bayer(cell) - 0.5) * (2.0 / period), 0.0, 1.0);
+}
+
+vec2 imageUv(vec2 uv) {
+  return (uv - 0.5) * uCover + 0.5;
+}
+
+float within(vec2 p) {
+  vec2 s = step(vec2(0.0), p) * step(p, vec2(1.0));
+  return s.x * s.y;
+}
+
+vec3 grade(vec3 c) {
+  return pow(clamp((c - 0.5) * uContrast + 0.5 + uBrightness, 0.0, 1.0), vec3(1.6));
+}
+
+float shockwave(vec2 p) {
+  float value = 0.0;
+  for (int i = 0; i < 4; i++) {
+    vec4 burst = uBursts[i];
+    if (burst.w <= 0.0) continue;
+    float offset = distance(p, burst.xy) - burst.z;
+    float edge = offset > 0.0 ? offset / (uBurstWidth * 0.35) : -offset / uBurstWidth;
+    value = max(value, clamp(1.0 - edge, 0.0, 1.0) * burst.w);
+  }
+  return value;
+}
+
+vec3 toned(vec3 c) {
+  return uPalette == 1 ? grade(c) : grade(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))));
+}
+
+vec3 quantize(vec3 v, float t) {
+  float steps = max(uLevels - 1.0, 1.0);
+  vec3 s = v * steps;
+  vec3 base = floor(s);
+  return min(base + step(vec3(t), s - base), vec3(steps)) / steps;
+}
+
+void main() {
+  vec2 px = vec2(gl_FragCoord.x, uResolution.y - gl_FragCoord.y);
+  vec2 cell = floor(px / uCell);
+  vec2 center = (cell + 0.5) * uCell;
+  vec2 cellUv = vec2(center.x / uResolution.x, 1.0 - center.y / uResolution.y);
+
+  vec2 sampleUv = imageUv(cellUv);
+  float framed = within(sampleUv);
+  vec3 level;
+  if (uPattern == 3) {
+    level = texelFetch(tDiffused, ivec2(cell), 0).rgb;
+  } else {
+    vec3 c = mix(uMatte, textureLod(tImage, sampleUv, uLod).rgb, framed);
+    float t = uPattern == 1 ? blueNoise(cell) : (uPattern == 2 ? engraving(cell) : bayer(cell));
+    level = quantize(toned(c), t);
+  }
+
+  vec3 color = mix(uInk, mix(uInk, uPaper, level), max(framed, uKey));
+  vec3 backdrop = mix(uInk, uPaper, toned(uMatte));
+  vec2 photoUv = imageUv(vUv);
+  vec3 raw = texture(tImage, photoUv).rgb;
+  float plain = uKey * (1.0 - smoothstep(0.05, 0.22, distance(raw, uMatte)));
+  vec3 photo = mix(mix(uInk, backdrop, uKey), mix(raw, backdrop, plain), within(photoUv));
+
+  vec2 point = vec2(cellUv.x, 1.0 - cellUv.y) * uSize;
+  float mask = max(clamp(texture(tMask, cellUv).r * uHold, 0.0, 1.0), shockwave(point));
+  float shown = mix(mask, 1.0 - mask, uReverse);
+  float order = bayer(cell.yx);
+  float low = order * (1.0 - uRim);
+  color = mix(color, uRimColor, step(low, shown) * step(0.001, uRim));
+  color = mix(color, photo, step(low + uRim, shown));
+
+  vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+  float spread = length((cellUv - 0.5) * aspect) / length(aspect * 0.5);
+  float appear = step(spread * 0.72 + bayer(cell + vec2(3.0, 5.0)) * 0.28, uIntro * 1.001);
+  fragColor = vec4(mix(uInk, color, appear), 1.0);
+}
+`;
+
+const DitherVeil = ({
+  src = DEFAULT_SRC,
+  fit = 'contain',
+  pattern = 'floyd',
+  pixelSize = 2,
+  levels = 2,
+  palette = 'duotone',
+  inkColor = '#120f17',
+  paperColor = '#f4f1ea',
+  contrast = 1.15,
+  brightness = 0,
+  revealRadius = 200,
+  softness = 0.6,
+  linger = 1,
+  rimColor = '#a78bfa',
+  rim = 0,
+  reverse = false,
+  wander = false,
+  clickBurst = true,
+  className = '',
+  style
+}) => {
+  const containerRef = useRef(null);
+  const settingsRef = useRef(null);
+  const wakeRef = useRef(() => {});
+
+  useEffect(() => {
+    settingsRef.current = {
+      fit,
+      pattern,
+      pixelSize,
+      levels,
+      palette,
+      inkColor,
+      paperColor,
+      contrast,
+      brightness,
+      revealRadius,
+      softness,
+      linger,
+      rimColor,
+      rim,
+      reverse,
+      wander,
+      clickBurst
+    };
+    wakeRef.current();
+  });
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const renderer = new Renderer({ dpr: Math.min(window.devicePixelRatio || 1, 2), alpha: false, antialias: false });
+    const gl = renderer.gl;
+    const canvas = gl.canvas;
+    canvas.style.display = 'block';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    container.appendChild(canvas);
+
+    const floatMask = renderer.isWebgl2 && !!renderer.getExtension('EXT_color_buffer_float');
+    const geometry = new Triangle(gl);
+
+    const dataTexture = () =>
+      new Texture(gl, {
+        image: new Uint8Array(4),
+        width: 1,
+        height: 1,
+        generateMipmaps: false,
+        flipY: false,
+        minFilter: gl.NEAREST,
+        magFilter: gl.NEAREST
+      });
+    const imageTexture = new Texture(gl, { minFilter: gl.LINEAR_MIPMAP_LINEAR, magFilter: gl.LINEAR });
+    const noiseTexture = dataTexture();
+    const diffusedTexture = dataTexture();
+
+    const createMask = (w, h) =>
+      new RenderTarget(gl, {
+        width: w,
+        height: h,
+        depth: false,
+        type: floatMask ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE,
+        internalFormat: floatMask ? gl.RGBA16F : gl.RGBA,
+        minFilter: gl.LINEAR,
+        magFilter: gl.LINEAR
+      });
+    const destroyMask = target => {
+      gl.deleteFramebuffer(target.buffer);
+      gl.deleteTexture(target.texture.texture);
+    };
+    let masks = [createMask(2, 2), createMask(2, 2)];
+
+    const maskUniforms = {
+      tPrev: { value: masks[0].texture },
+      uSize: { value: [1, 1] },
+      uFrom: { value: [0, 0] },
+      uTo: { value: [0, 0] },
+      uRadius: { value: 1 },
+      uSoftness: { value: 0.5 },
+      uStrength: { value: 0 },
+      uFade: { value: 1 },
+      uHold: { value: HOLD }
+    };
+    const viewUniforms = {
+      tImage: { value: imageTexture },
+      tMask: { value: masks[0].texture },
+      tNoise: { value: noiseTexture },
+      tDiffused: { value: diffusedTexture },
+      uResolution: { value: [1, 1] },
+      uCover: { value: [1, 1] },
+      uLod: { value: 0 },
+      uCell: { value: 3 },
+      uPattern: { value: 0 },
+      uPalette: { value: 0 },
+      uLevels: { value: 2 },
+      uInk: { value: [0, 0, 0] },
+      uPaper: { value: [1, 1, 1] },
+      uRimColor: { value: [1, 1, 1] },
+      uRim: { value: 0 },
+      uContrast: { value: 1 },
+      uBrightness: { value: 0 },
+      uReverse: { value: 0 },
+      uIntro: { value: 0 },
+      uHold: { value: HOLD },
+      uMatte: { value: [0, 0, 0] },
+      uKey: { value: 0 },
+      uSize: { value: [1, 1] },
+      uBursts: { value: Array.from({ length: MAX_BURSTS * 4 }, () => 0) },
+      uBurstWidth: { value: 60 }
+    };
+    const program = (fragment, uniforms) =>
+      new Program(gl, { vertex, fragment, uniforms, depthTest: false, depthWrite: false });
+    const maskMesh = new Mesh(gl, { geometry, program: program(maskFragment, maskUniforms) });
+    const viewMesh = new Mesh(gl, { geometry, program: program(viewFragment, viewUniforms) });
+
+    const sampler = document.createElement('canvas');
+    const samplerContext = sampler.getContext('2d', { willReadFrequently: true });
+
+    let image = null;
+    let introStart = 0;
+    let diffusedKey = '';
+    let diffusionBlocked = false;
+    let width = 1;
+    let height = 1;
+    let visible = true;
+    let raf = 0;
+    let last = performance.now();
+    let trailUntil = 0;
+    let presence = 0;
+    let drift = 0;
+    const pointer = { x: 0, y: 0, inside: false, fresh: true, placed: false };
+    const brush = { x: 0, y: 0, px: 0, py: 0 };
+    const bursts = [];
+
+    const layout = () => {
+      width = Math.max(1, container.clientWidth);
+      height = Math.max(1, container.clientHeight);
+      renderer.setSize(width, height);
+      viewUniforms.uResolution.value = [canvas.width, canvas.height];
+      maskUniforms.uSize.value = [width, height];
+      viewUniforms.uSize.value = [width, height];
+      const mw = Math.max(2, Math.round(width * MASK_SCALE));
+      const mh = Math.max(2, Math.round(height * MASK_SCALE));
+      if (mw !== masks[0].width || mh !== masks[0].height) {
+        masks.forEach(destroyMask);
+        masks = [createMask(mw, mh), createMask(mw, mh)];
+      }
+      if (!pointer.placed) {
+        pointer.x = width / 2;
+        pointer.y = height / 2;
+      }
+    };
+
+    const updateDiffusion = (cell, s) => {
+      if (!image || !samplerContext) return;
+      const cols = Math.ceil(canvas.width / cell);
+      const rows = Math.ceil(canvas.height / cell);
+      const key = [
+        s.pattern,
+        s.levels,
+        s.palette,
+        s.contrast,
+        s.brightness,
+        s.fit,
+        cols,
+        rows,
+        canvas.width,
+        canvas.height
+      ].join('|');
+      if (key === diffusedKey) return;
+      diffusedKey = key;
+      const [cx, cy] = viewUniforms.uCover.value;
+      const iw = image.naturalWidth;
+      const ih = image.naturalHeight;
+      sampler.width = cols;
+      sampler.height = rows;
+      samplerContext.imageSmoothingEnabled = true;
+      samplerContext.imageSmoothingQuality = 'high';
+      const [mr, mg, mb] = viewUniforms.uMatte.value;
+      samplerContext.fillStyle = `rgb(${mr * 255}, ${mg * 255}, ${mb * 255})`;
+      samplerContext.fillRect(0, 0, cols, rows);
+      const sx = (0.5 - 0.5 * cx) * iw;
+      const sy = (0.5 - 0.5 * cy) * ih;
+      const sw = ((cols * cell) / canvas.width) * cx * iw;
+      const sh = ((rows * cell) / canvas.height) * cy * ih;
+      const x0 = Math.max(sx, 0);
+      const y0 = Math.max(sy, 0);
+      const x1 = Math.min(sx + sw, iw);
+      const y1 = Math.min(sy + sh, ih);
+      if (x1 > x0 && y1 > y0) {
+        samplerContext.drawImage(
+          image,
+          x0,
+          y0,
+          x1 - x0,
+          y1 - y0,
+          ((x0 - sx) / sw) * cols,
+          ((y0 - sy) / sh) * rows,
+          ((x1 - x0) / sw) * cols,
+          ((y1 - y0) / sh) * rows
+        );
+      }
+      const grade = v => Math.pow(Math.min(1, Math.max(0, (v - 0.5) * s.contrast + 0.5 + s.brightness)), 1.6);
+      const pixels = samplerContext.getImageData(0, 0, cols, rows).data;
+      diffusedTexture.image = diffuse(pixels, cols, rows, KERNELS[s.pattern], s.levels, s.palette === 'rgb', grade);
+      diffusedTexture.width = cols;
+      diffusedTexture.height = rows;
+      diffusedTexture.needsUpdate = true;
+    };
+
+    const frame = now => {
+      raf = 0;
+      const s = settingsRef.current;
+      if (!s) return;
+      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+      last = now;
+
+      const wanderOn = s.wander && !reducedMotion;
+      let targetX = pointer.x;
+      let targetY = pointer.y;
+      if (!pointer.inside && wanderOn) {
+        drift = Math.min(1, drift + dt / 1.2);
+        const [wx, wy] = wanderAt(now / 1000, width, height);
+        const k = drift * drift * (3 - 2 * drift);
+        targetX += (wx - targetX) * k;
+        targetY += (wy - targetY) * k;
+      } else {
+        drift = 0;
+      }
+
+      presence += ((pointer.inside || wanderOn ? 1 : 0) - presence) * (1 - Math.exp(-dt / 0.16));
+
+      if (pointer.fresh) {
+        brush.x = brush.px = targetX;
+        brush.y = brush.py = targetY;
+        pointer.fresh = false;
+      } else {
+        const follow = 1 - Math.exp(-dt / 0.035);
+        brush.x += (targetX - brush.x) * follow;
+        brush.y += (targetY - brush.y) * follow;
+      }
+
+      const burstData = viewUniforms.uBursts.value;
+      burstData.fill(0);
+      for (let i = bursts.length - 1; i >= 0; i--) {
+        if ((now - bursts[i].start) / 1000 >= BURST_SECONDS) bursts.splice(i, 1);
+      }
+      bursts.forEach((b, i) => {
+        const k = Math.max(0, (now - b.start) / 1000 / BURST_SECONDS);
+        const reach =
+          Math.hypot(Math.max(b.x, width - b.x), Math.max(b.y, height - b.y)) + viewUniforms.uBurstWidth.value;
+        burstData[i * 4] = b.x;
+        burstData[i * 4 + 1] = b.y;
+        burstData[i * 4 + 2] = reach * Math.sin((k * Math.PI) / 2);
+        burstData[i * 4 + 3] = 1 - k * k * k;
+      });
+
+      if (presence > 0.002) trailUntil = now + s.linger * 1000 + 150;
+
+      const minFade = floatMask ? 0 : 1.5 / 255;
+      const fade = s.linger > 0 ? dt / s.linger : 1;
+      maskUniforms.tPrev.value = masks[0].texture;
+      maskUniforms.uFrom.value = [brush.px, brush.py];
+      maskUniforms.uTo.value = [brush.x, brush.y];
+      maskUniforms.uRadius.value = s.revealRadius * (0.45 + 0.55 * presence);
+      maskUniforms.uSoftness.value = s.softness;
+      maskUniforms.uStrength.value = presence;
+      maskUniforms.uFade.value = Math.max(fade, minFade);
+      viewUniforms.uBurstWidth.value = Math.max(60, s.revealRadius * 0.9);
+      renderer.render({ scene: maskMesh, target: masks[1] });
+      masks.reverse();
+      brush.px = brush.x;
+      brush.py = brush.y;
+
+      const cell = Math.max(1, Math.round(s.pixelSize * renderer.dpr));
+      if (image) {
+        viewUniforms.uCover.value = fitScale(
+          canvas.width,
+          canvas.height,
+          image.naturalWidth,
+          image.naturalHeight,
+          s.fit === 'contain'
+        );
+      }
+      let patternIndex = ORDERED[s.pattern] ?? 0;
+      if (KERNELS[s.pattern]) {
+        patternIndex = 0;
+        if (image && !diffusionBlocked) {
+          try {
+            updateDiffusion(cell, s);
+            patternIndex = 3;
+          } catch {
+            diffusionBlocked = true;
+          }
+        }
+      }
+      if (patternIndex === 1 && noiseTexture.width !== 64) {
+        noiseTexture.image = getBlueNoise();
+        noiseTexture.width = 64;
+        noiseTexture.height = 64;
+        noiseTexture.needsUpdate = true;
+      }
+
+      const texelsPerPixel = image ? (viewUniforms.uCover.value[0] * image.naturalWidth) / canvas.width : 1;
+      viewUniforms.tMask.value = masks[0].texture;
+      viewUniforms.uCell.value = cell;
+      viewUniforms.uLod.value = Math.log2(Math.max(cell * texelsPerPixel, 1));
+      viewUniforms.uPattern.value = patternIndex;
+      viewUniforms.uPalette.value = s.palette === 'rgb' ? 1 : 0;
+      viewUniforms.uLevels.value = Math.max(2, Math.round(s.levels));
+      viewUniforms.uInk.value = hexToRgb(s.inkColor);
+      viewUniforms.uPaper.value = hexToRgb(s.paperColor);
+      viewUniforms.uRimColor.value = hexToRgb(s.rimColor);
+      viewUniforms.uRim.value = Math.min(Math.max(s.rim, 0), 0.95);
+      viewUniforms.uContrast.value = s.contrast;
+      viewUniforms.uBrightness.value = s.brightness;
+      viewUniforms.uReverse.value = s.reverse ? 1 : 0;
+      const intro = image ? Math.min(1, (now - introStart) / INTRO_MS) : 0;
+      viewUniforms.uIntro.value = 1 - Math.pow(1 - intro, 2);
+      renderer.render({ scene: viewMesh });
+
+      const busy =
+        pointer.inside || wanderOn || presence > 0.002 || bursts.length > 0 || now < trailUntil || (image && intro < 1);
+      if (busy && visible) raf = requestAnimationFrame(frame);
+    };
+
+    const wake = () => {
+      if (raf || !visible) return;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    };
+    wakeRef.current = wake;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.decoding = 'async';
+    img.onload = () => {
+      image = img;
+      imageTexture.image = img;
+      try {
+        if (samplerContext) {
+          const edge = measureEdge(samplerContext, img);
+          viewUniforms.uMatte.value = edge.matte;
+          viewUniforms.uKey.value = edge.plain ? 1 : 0;
+        }
+      } catch {}
+      introStart = performance.now();
+      wake();
+    };
+    img.src = src;
+
+    const locate = e => {
+      const rect = container.getBoundingClientRect();
+      pointer.x = e.clientX - rect.left;
+      pointer.y = e.clientY - rect.top;
+      pointer.placed = true;
+    };
+    const onMove = e => {
+      locate(e);
+      if (!pointer.inside) {
+        pointer.inside = true;
+        pointer.fresh = true;
+      }
+      wake();
+    };
+    const onLeave = () => {
+      pointer.inside = false;
+      wake();
+    };
+    const onDown = e => {
+      onMove(e);
+      if (!settingsRef.current?.clickBurst || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      bursts.push({ x: pointer.x, y: pointer.y, start: performance.now() });
+      if (bursts.length > MAX_BURSTS) bursts.shift();
+    };
+    container.addEventListener('pointermove', onMove, { passive: true });
+    container.addEventListener('pointerenter', onMove, { passive: true });
+    container.addEventListener('pointerdown', onDown, { passive: true });
+    container.addEventListener('pointerleave', onLeave, { passive: true });
+    container.addEventListener('pointercancel', onLeave, { passive: true });
+
+    const resizeObserver = new ResizeObserver(() => {
+      layout();
+      wake();
+    });
+    resizeObserver.observe(container);
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      wake();
+    });
+    intersectionObserver.observe(container);
+
+    layout();
+    wake();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      wakeRef.current = () => {};
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      img.onload = null;
+      container.removeEventListener('pointermove', onMove);
+      container.removeEventListener('pointerenter', onMove);
+      container.removeEventListener('pointerdown', onDown);
+      container.removeEventListener('pointerleave', onLeave);
+      container.removeEventListener('pointercancel', onLeave);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    };
+  }, [src]);
+
+  return <div ref={containerRef} className={`dither-veil ${className}`.trim()} style={style} />;
+};
+
+export default DitherVeil;
+
+```
+
+### Component CSS
+```css
+.dither-veil {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+```
+
+### Integration Instructions
+1. Install any listed dependencies.
+2. Copy the component source into the appropriate directory in the project.
+3. Import the CSS file alongside the component.
+4. Import and render the component using the usage example above as a starting point.
+5. Adjust props as needed for the specific use case — refer to the props table for all available options.
+
+### More from React Bits
+The full library index, including everything reactbits.dev offers, is at https://reactbits.dev/llms.txt — fetch it if this component is not the right fit or the project needs more pieces.
+add this component at thhe bottom left part to show scroll distance 
+## Integrate the <CometDial /> component from React Bits
+You are helping integrate an open-source React component into an existing application.
+### Component: CometDial
+### Variant: JavaScript + CSS
+### Dependencies: motion
+---
+### Usage Example
+```jsx
+import CometDial from './CometDial';
+<CometDial
+  defaultValue={62}
+  min={0}
+  max={100}
+  step={1}
+  unit="%"
+  label="Level"
+  accent="#f5f5f5"
+  ink="#fdfdfd"
+  size={250}
+  sweep={320}
+  thickness={5}
+  speed={25}
+  tapBounce={0.2}
+  flickBounce={0.1}
+  momentum={1}
+  cometReach={180}
+  cometWidth={12}
+  onChange={value => console.log(value)}
+  onChangeEnd={(value, { velocity, bounce }) => console.log('settling toward', value, velocity, bounce)}
+/>
+```
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| value | number | undefined | Controlled value. A change from outside launches the reading on the tap spring. |
+| defaultValue | number | 62 | Initial value when uncontrolled. |
+| min | number | 0 | Lowest value. |
+| max | number | 100 | Highest value. |
+| step | number | 1 | Snapping grid, and the keyboard nudge. |
+| unit | string | "%" | Suffix after the figure. Empty hides it. |
+| label | string | "Level" | Accessible name of the slider. |
+| accent | string | "#f5f5f5" | The lit arc, the bead and the comet. |
+| ink | string | "#fdfdfd" | The track and the readout. |
+| size | number | 250 | Diameter in pixels. Everything inside scales with it. |
+| sweep | number | 320 | Degrees the arc covers, with the gap centred at the bottom. |
+| thickness | number | 5 | Stroke width of the track and the arc. The bead follows it. |
+| speed | number | 25 | How quickly the reading arrives, 0 to 100. |
+| tapBounce | number | 0.2 | Ring-down after a tap. 0 stops dead. |
+| flickBounce | number | 0.1 | Ring-down after a full-speed flick. A slower release lands between the two. |
+| momentum | number | 1 | How far a flick carries the reading past where you let go. 0 drops it where released. |
+| cometReach | number | 180 | Degrees of trail behind the bead at full speed. |
+| cometWidth | number | 12 | Extra stroke width at the head of the trail at full speed. |
+| disabled | boolean | false | Dims the dial and ignores input. |
+| onChange | (value: number) => void | - | Called on every snapped change, including during a drag. |
+| onChangeEnd | (value: number, detail: { velocity: number; bounce: number }) => void | - | Called on release and on a key, with the release velocity and the bounce it earned. |
+| className | string | "" | Extra classes for the root. |
+### Full Component Source
+```jsx
+'use client';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { animate, useMotionValue, useReducedMotion } from 'motion/react';
+import './CometDial.css';
+const R = 80;
+const DEAD = 44;
+const K = 12;
+const V_FULL = 4;
+const V_FLICK = 2;
+const TAU_FOLLOW = 0.06;
+const TAU_V = 0.05;
+const DECEL = 0.99;
+const DRAG_PX = 10;
+const STALE_MS = 80;
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const velocityOf = hist => {
+  if (hist.length < 2) return 0;
+  const a = hist[0];
+  const b = hist[hist.length - 1];
+  return ((b[1] - a[1]) / Math.max(1, b[0] - a[0])) * 1000;
+};
+const decimalsOf = step => {
+  const s = String(step);
+  const i = s.indexOf('.');
+  return i === -1 ? 0 : s.length - i - 1;
+};
+const pointAt = deg => {
+  const a = (deg * Math.PI) / 180;
+  return [100 + Math.cos(a) * R, 100 + Math.sin(a) * R];
+};
+const arcPath = (a0, a1) => {
+  const [x0, y0] = pointAt(a0);
+  const [x1, y1] = pointAt(a1);
+  return `M ${x0.toFixed(3)} ${y0.toFixed(3)} A ${R} ${R} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(3)} ${y1.toFixed(3)}`;
+};
+export default function CometDial({
+  value,
+  defaultValue = 62,
+  min = 0,
+  max = 100,
+  step = 1,
+  unit = '%',
+  label = 'Level',
+  accent = '#f5f5f5',
+  ink = '#fdfdfd',
+  size = 250,
+  sweep = 320,
+  thickness = 5,
+  speed = 25,
+  tapBounce = 0.2,
+  flickBounce = 0.1,
+  momentum = 1,
+  cometReach = 180,
+  cometWidth = 12,
+  disabled = false,
+  onChange,
+  onChangeEnd,
+  className = ''
+}) {
+  const reduce = useReducedMotion();
+  const [dragging, setDragging] = useState(false);
+  const svgRef = useRef(null);
+  const litRef = useRef(null);
+  const headRef = useRef(null);
+  const comet = useRef([]);
+  const figure = useRef(null);
+  const target = useRef(clamp(value ?? defaultValue, min, max));
+  const grip = useRef(null);
+  const unbind = useRef(null);
+  const loop = useRef({ raf: 0, last: 0, v: 0, rPrev: null, text: '', valueText: '' });
+  const live = useRef({});
+  const reading = useMotionValue(target.current);
+  const range = Math.max(1e-9, max - min);
+  const gap = 360 - sweep;
+  const start = 90 + gap / 2;
+  const end = start + sweep;
+  const decimals = decimalsOf(step);
+  const k = 200 + (clamp(speed, 0, 100) / 100) * 700;
+  const crit = 2 * Math.sqrt(k);
+  const snap = v => (step > 0 ? clamp(Math.round((v - min) / step) * step + min, min, max) : clamp(v, min, max));
+  const commit = (v, finished, detail) => {
+    const s = snap(v);
+    if (s !== target.current) {
+      target.current = s;
+      onChange?.(s);
+    }
+    if (finished) onChangeEnd?.(s, detail ?? { velocity: 0, bounce: tapBounce });
+  };
+  const paintRef = useRef(null);
+  const tick = useCallback(now => paintRef.current?.(now), []);
+  const wake = () => {
+    const L = loop.current;
+    if (L.raf) return;
+    L.last = performance.now();
+    L.rPrev = null;
+    L.raf = requestAnimationFrame(tick);
+  };
+  const launch = (to, bounce, velocity = reading.getVelocity()) => {
+    reading.stop();
+    if (reduce) {
+      reading.jump(to);
+      wake();
+      return;
+    }
+    animate(reading, to, {
+      type: 'spring',
+      stiffness: k,
+      damping: crit * (1 - clamp(bounce, 0, 0.9)),
+      mass: 1,
+      velocity
+    });
+    wake();
+  };
+  const paint = now => {
+    const L = loop.current;
+    const svg = svgRef.current;
+    if (!svg) {
+      L.raf = 0;
+      return;
+    }
+    const dt = clamp((now - L.last) / 1000, 0, 0.05);
+    L.last = now;
+    const g = grip.current;
+    if (g && g.at != null) {
+      if (reduce) reading.jump(g.at);
+      else reading.set(reading.get() + (g.at - reading.get()) * (1 - Math.exp(-dt / TAU_FOLLOW)));
+    }
+    const r = reading.get();
+    const vRaw = L.rPrev == null || dt === 0 || reduce ? 0 : (r - L.rPrev) / dt / range;
+    L.rPrev = r;
+    L.v += (vRaw - L.v) * (1 - Math.exp(-dt / TAU_V));
+    const v = L.v;
+    const s = clamp(Math.abs(v) / V_FULL, 0, 1);
+    const dir = Math.sign(v) || 1;
+    const f = clamp((r - min) / range, 0, 1);
+    const ang = start + f * sweep;
+    if (litRef.current) litRef.current.setAttribute('d', f > 0.0005 ? arcPath(start, ang) : '');
+    if (headRef.current) {
+      const [cx, cy] = pointAt(ang);
+      headRef.current.setAttribute('cx', cx.toFixed(3));
+      headRef.current.setAttribute('cy', cy.toFixed(3));
+    }
+    const seg = (cometReach * s) / K;
+    for (let j = 0; j < K; j++) {
+      const el = comet.current[j];
+      if (!el) continue;
+      let a0 = dir > 0 ? ang - (j + 1) * seg : ang + j * seg;
+      let a1 = dir > 0 ? ang - j * seg : ang + (j + 1) * seg;
+      a0 = clamp(a0, start, end);
+      a1 = clamp(a1, start, end);
+      if (seg < 0.01 || a1 - a0 < 0.01) {
+        if (el.style.opacity !== '0') el.style.opacity = '0';
+        continue;
+      }
+      const w = 1 - j / K;
+      el.setAttribute('d', arcPath(a0, a1));
+      el.setAttribute('stroke-width', (thickness + cometWidth * w * s).toFixed(2));
+      el.style.opacity = (w * s).toFixed(3);
+    }
+    const shown = clamp(r, min, max).toFixed(decimals);
+    if (shown !== L.text) {
+      L.text = shown;
+      if (figure.current) figure.current.textContent = shown;
+      svg.setAttribute('aria-valuenow', shown);
+    }
+    const valueText = `${target.current}${unit}`;
+    if (valueText !== L.valueText) {
+      L.valueText = valueText;
+      svg.setAttribute('aria-valuetext', valueText);
+    }
+    const moving = !!g || reading.isAnimating() || Math.abs(v) > 0.002;
+    if (!moving) {
+      for (const el of comet.current) if (el && el.style.opacity !== '0') el.style.opacity = '0';
+    }
+    L.raf = moving ? requestAnimationFrame(tick) : 0;
+  };
+  paintRef.current = paint;
+  const localPoint = (cx, cy) => {
+    const b = svgRef.current.getBoundingClientRect();
+    return [((cx - b.left) / b.width) * 200 - 100, ((cy - b.top) / b.height) * 200 - 100];
+  };
+  const angleAt = (cx, cy) => {
+    const [x, y] = localPoint(cx, cy);
+    let rel = ((Math.atan2(y, x) * 180) / Math.PI - start + 720) % 360;
+    const g = grip.current;
+    if (rel > sweep) rel = g && g.side ? (g.side === 'hi' ? sweep : 0) : rel < sweep + gap / 2 ? sweep : 0;
+    else if (g) g.side = rel > sweep / 2 ? 'hi' : 'lo';
+    return min + (rel / sweep) * range;
+  };
+  const move = e => {
+    const g = grip.current;
+    if (!g || g.id !== e.pointerId) return;
+    if (!g.moved) {
+      if (Math.hypot(e.clientX - g.x0, e.clientY - g.y0) < DRAG_PX) return;
+      g.moved = true;
+      reading.stop();
+    }
+    g.at = angleAt(e.clientX, e.clientY);
+    g.hist.push([performance.now(), g.at]);
+    if (g.hist.length > 4) g.hist.shift();
+    commit(g.at, false);
+    wake();
+  };
+  const up = e => {
+    const g = grip.current;
+    if (!g || g.id !== e.pointerId) return;
+    grip.current = null;
+    unbind.current?.();
+    unbind.current = null;
+    setDragging(false);
+    try {
+      svgRef.current?.releasePointerCapture(e.pointerId);
+    } catch {}
+    if (!g.moved) {
+      commit(target.current, true);
+      return;
+    }
+    const stale = performance.now() - g.hist[g.hist.length - 1][0] > STALE_MS;
+    const v = e.type === 'pointercancel' || stale ? 0 : velocityOf(g.hist);
+    const bounce = tapBounce + (flickBounce - tapBounce) * clamp(Math.abs(v) / range / V_FLICK, 0, 1);
+    const to = snap((g.at ?? target.current) + (v / 1000) * (DECEL / (1 - DECEL)) * momentum);
+    commit(to, true, { velocity: v, bounce });
+    launch(to, bounce, v);
+  };
+  live.current = { move, up };
+  const down = e => {
+    if (disabled || grip.current || e.button > 0) return;
+    const [x, y] = localPoint(e.clientX, e.clientY);
+    if (Math.hypot(x, y) < DEAD) return;
+    e.preventDefault();
+    const svg = svgRef.current;
+    try {
+      svg.setPointerCapture(e.pointerId);
+    } catch {}
+    svg.focus({ preventScroll: true });
+    grip.current = { id: e.pointerId, at: null, hist: [], side: null, moved: false, x0: e.clientX, y0: e.clientY };
+    const at = angleAt(e.clientX, e.clientY);
+    grip.current.hist.push([performance.now(), at]);
+    setDragging(true);
+    commit(at, false);
+    launch(snap(at), tapBounce);
+    const onMove = ev => {
+      if (ev.isTrusted) live.current.move(ev);
+    };
+    const onUp = ev => {
+      if (ev.isTrusted) live.current.up(ev);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    unbind.current = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  };
+  const key = e => {
+    if (disabled) return;
+    const t = target.current;
+    const big = e.shiftKey ? 10 : 1;
+    let to;
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowUp':
+        to = t + step * big;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        to = t - step * big;
+        break;
+      case 'PageUp':
+        to = t + step * 10;
+        break;
+      case 'PageDown':
+        to = t - step * 10;
+        break;
+      case 'Home':
+        to = min;
+        break;
+      case 'End':
+        to = max;
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    to = snap(to);
+    reading.stop();
+    reading.jump(to);
+    commit(to, true);
+    wake();
+  };
+  useLayoutEffect(() => {
+    const L = loop.current;
+    L.text = '';
+    L.valueText = '';
+    paintRef.current?.(performance.now());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [min, max, step, sweep, thickness, cometReach, cometWidth, unit]);
+  useEffect(() => {
+    if (value === undefined || grip.current) return;
+    const s = snap(value);
+    if (s === target.current) return;
+    target.current = s;
+    launch(s, tapBounce);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(loop.current.raf);
+      unbind.current?.();
+      reading.stop();
+    },
+    [reading]
+  );
+  return (
+    <div
+      className={`comet-dial${className ? ` ${className}` : ''}`}
+      data-dragging={dragging ? '' : undefined}
+      data-disabled={disabled ? '' : undefined}
+      style={{
+        '--cd-accent': accent,
+        '--cd-ink': ink,
+        '--cd-size': `${size}px`,
+        '--cd-figure': `${Math.round(size * 0.16)}px`
+      }}
+    >
+      <svg
+        ref={svgRef}
+        className="comet-dial__ring"
+        viewBox="0 0 200 200"
+        role="slider"
+        tabIndex={disabled ? -1 : 0}
+        aria-label={label}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={target.current}
+        aria-valuetext={`${target.current}${unit}`}
+        aria-disabled={disabled || undefined}
+        onPointerDown={down}
+        onKeyDown={key}
+      >
+        <path className="comet-dial__track" d={arcPath(start, end)} strokeWidth={thickness} />
+        <path ref={litRef} className="comet-dial__lit" strokeWidth={thickness} />
+        <g className="comet-dial__comet">
+          {Array.from({ length: K }, (_, j) => (
+            <path
+              key={j}
+              ref={el => {
+                comet.current[j] = el;
+              }}
+              style={{ opacity: 0 }}
+            />
+          ))}
+        </g>
+        <circle ref={headRef} className="comet-dial__head" r={thickness * 1.8} />
+      </svg>
+      <div className="comet-dial__readout" aria-hidden="true">
+        <span className="comet-dial__value">
+          <span ref={figure} className="comet-dial__figure" />
+          {unit ? <span className="comet-dial__unit">{unit}</span> : null}
+        </span>
+      </div>
+    </div>
+  );
+}
+```
+### Component CSS
+```css
+.comet-dial {
+  --cd-accent: #f5f5f5;
+  --cd-ink: #fdfdfd;
+  --cd-size: 250px;
+  --cd-figure: 40px;
+  position: relative;
+  width: var(--cd-size);
+  height: var(--cd-size);
+  color: var(--cd-ink);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.comet-dial__ring {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  outline: none;
+  cursor: grab;
+  touch-action: none;
+}
+.comet-dial[data-dragging] .comet-dial__ring {
+  cursor: grabbing;
+}
+.comet-dial__track,
+.comet-dial__lit,
+.comet-dial__comet path {
+  fill: none;
+  stroke-linecap: round;
+}
+.comet-dial__track {
+  stroke: var(--cd-ink);
+  opacity: 0.24;
+}
+.comet-dial__lit {
+  stroke: var(--cd-accent);
+  opacity: 0.7;
+}
+.comet-dial__comet path {
+  stroke: var(--cd-accent);
+}
+.comet-dial__head {
+  fill: var(--cd-accent);
+}
+.comet-dial__readout {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.comet-dial__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.06em;
+  font-size: var(--cd-figure);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.comet-dial__unit {
+  font-size: 0.5em;
+  opacity: 0.5;
+}
+.comet-dial[data-disabled] {
+  opacity: 0.55;
+}
+.comet-dial[data-disabled] .comet-dial__ring {
+  cursor: default;
+  pointer-events: none;
+}
+```
+### Integration Instructions
+1. Install any listed dependencies.
+2. Copy the component source into the appropriate directory in the project.
+3. Import the CSS file alongside the component.
+4. Import and render the component using the usage example above as a starting point.
+5. Adjust props as needed for the specific use case — refer to the props table for all available options.
+### More from React Bits
+The full library index, including everything reactbits.dev offers, is at https://reactbits.dev/llms.txt — fetch it if this component is not the right fit or the project needs more pieces.
+then add this decrypted text for some text fields , ensure it obeys design 
+## Integrate the <DecryptedText /> component from React Bits
+You are helping integrate an open-source React component into an existing application.
+### Component: DecryptedText
+### Variant: JavaScript + CSS
+### Dependencies: motion
+---
+### Usage Example
+```jsx
+import DecryptedText from './DecryptedText';
+{/* Example 1: Defaults (hover to decrypt) */}
+<DecryptedText text="Hover me!" />
+{/* Example 2: Customized speed and characters */}
+<DecryptedText
+text="Customize me"
+speed={100}
+maxIterations={20}
+characters="ABCD1234!?"
+className="revealed"
+parentClassName="all-letters"
+encryptedClassName="encrypted"
+/>
+{/* Example 3: Click to decrypt (toggle mode) */}
+<DecryptedText
+text="Click to decrypt"
+animateOn="click"
+clickMode="toggle"
+/>
+{/* Example 4: Animate on view (runs once) */}
+<div style={{ marginTop: '4rem' }}>
+  <DecryptedText
+  text="This text animates when in view"
+  animateOn="view"
+  revealDirection="center"
+  />
+</div>
+```
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| text | string | "" | The text content to decrypt. |
+| speed | number | 50 | Time in ms between each iteration. |
+| maxIterations | number | 10 | Max # of random iterations (non-sequential mode). |
+| sequential | boolean | false | Whether to reveal one character at a time in sequence. |
+| revealDirection | "start" | "end" | "center" | "start" | From which position characters begin to reveal in sequential mode. |
+| useOriginalCharsOnly | boolean | false | Restrict scrambling to only the characters already in the text. |
+| className | string | "" | CSS class for revealed characters. |
+| parentClassName | string | "" | CSS class for the main characters container. |
+| encryptedClassName | string | "" | CSS class for encrypted characters. |
+| animateOn | "view" | "hover" | "inViewHover" | "click" | "hover" | Trigger scrambling on hover or scroll-into-view. |
+| clickMode | "once" | "toggle" | "once" | Controls click behavior; only applies when animateOn is "click". |
+### Full Component Source
+```jsx
+'use client';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { motion } from 'motion/react';
+const styles = {
+  wrapper: {
+    display: 'inline-block',
+    whiteSpace: 'pre-wrap'
+  },
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0,0,0,0)',
+    border: 0,
+    visibility: 'hidden'
+  }
+};
+export default function DecryptedText({
+  text,
+  speed = 50,
+  maxIterations = 10,
+  sequential = false,
+  revealDirection = 'start',
+  useOriginalCharsOnly = false,
+  characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+',
+  className = '',
+  parentClassName = '',
+  encryptedClassName = '',
+  animateOn = 'hover',
+  clickMode = 'once',
+  ...props
+}) {
+  const [displayText, setDisplayText] = useState(text);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [revealedIndices, setRevealedIndices] = useState(new Set());
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const [isDecrypted, setIsDecrypted] = useState(animateOn !== 'click');
+  const [direction, setDirection] = useState('forward');
+  const containerRef = useRef(null);
+  const orderRef = useRef([]);
+  const pointerRef = useRef(0);
+  const intervalRef = useRef(null);
+  const availableChars = useMemo(() => {
+    return useOriginalCharsOnly
+      ? Array.from(new Set(text.split(''))).filter(char => char !== ' ')
+      : characters.split('');
+  }, [useOriginalCharsOnly, text, characters]);
+  const shuffleText = useCallback(
+    (originalText, currentRevealed) => {
+      return originalText
+        .split('')
+        .map((char, i) => {
+          if (char === ' ') return ' ';
+          if (currentRevealed.has(i)) return originalText[i];
+          return availableChars[Math.floor(Math.random() * availableChars.length)];
+        })
+        .join('');
+    },
+    [availableChars]
+  );
+  const computeOrder = useCallback(
+    len => {
+      const order = [];
+      if (len <= 0) return order;
+      if (revealDirection === 'start') {
+        for (let i = 0; i < len; i++) order.push(i);
+        return order;
+      }
+      if (revealDirection === 'end') {
+        for (let i = len - 1; i >= 0; i--) order.push(i);
+        return order;
+      }
+      // center
+      const middle = Math.floor(len / 2);
+      let offset = 0;
+      while (order.length < len) {
+        if (offset % 2 === 0) {
+          const idx = middle + offset / 2;
+          if (idx >= 0 && idx < len) order.push(idx);
+        } else {
+          const idx = middle - Math.ceil(offset / 2);
+          if (idx >= 0 && idx < len) order.push(idx);
+        }
+        offset++;
+      }
+      return order.slice(0, len);
+    },
+    [revealDirection]
+  );
+  const fillAllIndices = useCallback(() => {
+    const s = new Set();
+    for (let i = 0; i < text.length; i++) s.add(i);
+    return s;
+  }, [text]);
+  const removeRandomIndices = useCallback((set, count) => {
+    const arr = Array.from(set);
+    for (let i = 0; i < count && arr.length > 0; i++) {
+      const idx = Math.floor(Math.random() * arr.length);
+      arr.splice(idx, 1);
+    }
+    return new Set(arr);
+  }, []);
+  const encryptInstantly = useCallback(() => {
+    const emptySet = new Set();
+    setRevealedIndices(emptySet);
+    setDisplayText(shuffleText(text, emptySet));
+    setIsDecrypted(false);
+  }, [text, shuffleText]);
+  const triggerDecrypt = useCallback(() => {
+    if (sequential) {
+      orderRef.current = computeOrder(text.length);
+      pointerRef.current = 0;
+      setRevealedIndices(new Set());
+    } else {
+      setRevealedIndices(new Set());
+    }
+    setDirection('forward');
+    setIsAnimating(true);
+  }, [sequential, computeOrder, text.length]);
+  const triggerReverse = useCallback(() => {
+    if (sequential) {
+      // compute forward order then reverse it: we'll remove indices in that order
+      orderRef.current = computeOrder(text.length).slice().reverse();
+      pointerRef.current = 0;
+      setRevealedIndices(fillAllIndices()); // start fully revealed
+      setDisplayText(shuffleText(text, fillAllIndices()));
+    } else {
+      // non-seq: start from fully revealed as well
+      setRevealedIndices(fillAllIndices());
+      setDisplayText(shuffleText(text, fillAllIndices()));
+    }
+    setDirection('reverse');
+    setIsAnimating(true);
+  }, [sequential, computeOrder, fillAllIndices, shuffleText, text]);
+  useEffect(() => {
+    if (!isAnimating) return;
+    let currentIteration = 0;
+    const getNextIndex = revealedSet => {
+      const textLength = text.length;
+      switch (revealDirection) {
+        case 'start':
+          return revealedSet.size;
+        case 'end':
+          return textLength - 1 - revealedSet.size;
+        case 'center': {
+          const middle = Math.floor(textLength / 2);
+          const offset = Math.floor(revealedSet.size / 2);
+          const nextIndex = revealedSet.size % 2 === 0 ? middle + offset : middle - offset - 1;
+          if (nextIndex >= 0 && nextIndex < textLength && !revealedSet.has(nextIndex)) {
+            return nextIndex;
+          }
+          for (let i = 0; i < textLength; i++) {
+            if (!revealedSet.has(i)) return i;
+          }
+          return 0;
+        }
+        default:
+          return revealedSet.size;
+      }
+    };
+    intervalRef.current = setInterval(() => {
+      setRevealedIndices(prevRevealed => {
+        if (sequential) {
+          // Forward
+          if (direction === 'forward') {
+            if (prevRevealed.size < text.length) {
+              const nextIndex = getNextIndex(prevRevealed);
+              const newRevealed = new Set(prevRevealed);
+              newRevealed.add(nextIndex);
+              setDisplayText(shuffleText(text, newRevealed));
+              return newRevealed;
+            } else {
+              clearInterval(intervalRef.current);
+              setIsAnimating(false);
+              setIsDecrypted(true);
+              return prevRevealed;
+            }
+          }
+          // Reverse
+          if (direction === 'reverse') {
+            if (pointerRef.current < orderRef.current.length) {
+              const idxToRemove = orderRef.current[pointerRef.current++];
+              const newRevealed = new Set(prevRevealed);
+              newRevealed.delete(idxToRemove);
+              setDisplayText(shuffleText(text, newRevealed));
+              if (newRevealed.size === 0) {
+                clearInterval(intervalRef.current);
+                setIsAnimating(false);
+                setIsDecrypted(false);
+              }
+              return newRevealed;
+            } else {
+              clearInterval(intervalRef.current);
+              setIsAnimating(false);
+              setIsDecrypted(false);
+              return prevRevealed;
+            }
+          }
+        } else {
+          // Non-Sequential
+          if (direction === 'forward') {
+            setDisplayText(shuffleText(text, prevRevealed));
+            currentIteration++;
+            if (currentIteration >= maxIterations) {
+              clearInterval(intervalRef.current);
+              setIsAnimating(false);
+              setDisplayText(text);
+              setIsDecrypted(true);
+            }
+            return prevRevealed;
+          }
+          // Non-Sequential Reverse
+          if (direction === 'reverse') {
+            let currentSet = prevRevealed;
+            if (currentSet.size === 0) {
+              currentSet = fillAllIndices();
+            }
+            const removeCount = Math.max(1, Math.ceil(text.length / Math.max(1, maxIterations)));
+            const nextSet = removeRandomIndices(currentSet, removeCount);
+            setDisplayText(shuffleText(text, nextSet));
+            currentIteration++;
+            if (nextSet.size === 0 || currentIteration >= maxIterations) {
+              clearInterval(intervalRef.current);
+              setIsAnimating(false);
+              setIsDecrypted(false);
+              // ensure final scrambled state
+              setDisplayText(shuffleText(text, new Set()));
+              return new Set();
+            }
+            return nextSet;
+          }
+        }
+        return prevRevealed;
+      });
+    }, speed);
+    return () => clearInterval(intervalRef.current);
+  }, [
+    isAnimating,
+    text,
+    speed,
+    maxIterations,
+    sequential,
+    revealDirection,
+    shuffleText,
+    direction,
+    fillAllIndices,
+    removeRandomIndices,
+    characters,
+    useOriginalCharsOnly
+  ]);
+  /* Click Behaviour */
+  const handleClick = () => {
+    if (animateOn !== 'click') return;
+    if (clickMode === 'once') {
+      if (isDecrypted) return;
+      setDirection('forward');
+      triggerDecrypt();
+    }
+    if (clickMode === 'toggle') {
+      if (isDecrypted) {
+        triggerReverse();
+      } else {
+        setDirection('forward');
+        triggerDecrypt();
+      }
+    }
+  };
+  /* Hover Behaviour */
+  const triggerHoverDecrypt = useCallback(() => {
+    if (isAnimating) return;
+    setRevealedIndices(new Set());
+    setIsDecrypted(false);
+    setDisplayText(text);
+    setDirection('forward');
+    setIsAnimating(true);
+  }, [isAnimating, text]);
+  const resetToPlainText = useCallback(() => {
+    clearInterval(intervalRef.current);
+    setIsAnimating(false);
+    setRevealedIndices(new Set());
+    setDisplayText(text);
+    setIsDecrypted(true);
+    setDirection('forward');
+  }, [text]);
+  /* View Observer */
+  useEffect(() => {
+    if (animateOn !== 'view' && animateOn !== 'inViewHover') return;
+    const observerCallback = entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasAnimated) {
+          triggerDecrypt();
+          setHasAnimated(true);
+        }
+      });
+    };
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    const currentRef = containerRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [animateOn, hasAnimated, triggerDecrypt]);
+  useEffect(() => {
+    if (animateOn === 'click') {
+      encryptInstantly();
+    } else {
+      setDisplayText(text);
+      setIsDecrypted(true);
+    }
+    setRevealedIndices(new Set());
+    setDirection('forward');
+  }, [animateOn, text, encryptInstantly]);
+  const animateProps =
+    animateOn === 'hover' || animateOn === 'inViewHover'
+      ? {
+          onMouseEnter: triggerHoverDecrypt,
+          onMouseLeave: resetToPlainText
+        }
+      : animateOn === 'click'
+        ? {
+            onClick: handleClick
+          }
+        : {};
+  return (
+    <motion.span className={parentClassName} ref={containerRef} style={styles.wrapper} {...animateProps} {...props}>
+      <span style={styles.srOnly}>{displayText}</span>
+      <span aria-hidden="true">
+        {displayText.split('').map((char, index) => {
+          const isRevealedOrDone = revealedIndices.has(index) || (!isAnimating && isDecrypted);
+          return (
+            <span key={index} className={isRevealedOrDone ? className : encryptedClassName}>
+              {char}
+            </span>
+          );
+        })}
+      </span>
+    </motion.span>
+  );
+}
+```
+### Integration Instructions
+1. Install any listed dependencies.
+2. Copy the component source into the appropriate directory in the project.
+3. Import and render the component using the usage example above as a starting point.
+4. Adjust props as needed for the specific use case — refer to the props table for all available options.
+### More from React Bits
+The full library index, including everything reactbits.dev offers, is at https://reactbits.dev/llms.txt — fetch it if this component is not the right fit or the project needs more pieces.
+## Integrate the <DecryptedText /> component from React Bits
+
+You are helping integrate an open-source React component into an existing application.
+
+### Component: DecryptedText
+### Variant: JavaScript + CSS
+### Dependencies: motion
+
+---
+
+### Usage Example
+```jsx
+import DecryptedText from './DecryptedText';
+
+{/* Example 1: Defaults (hover to decrypt) */}
+<DecryptedText text="Hover me!" />
+
+{/* Example 2: Customized speed and characters */}
+<DecryptedText
+text="Customize me"
+speed={100}
+maxIterations={20}
+characters="ABCD1234!?"
+className="revealed"
+parentClassName="all-letters"
+encryptedClassName="encrypted"
+/>
+
+{/* Example 3: Click to decrypt (toggle mode) */}
+<DecryptedText
+text="Click to decrypt"
+animateOn="click"
+clickMode="toggle"
+/>
+
+{/* Example 4: Animate on view (runs once) */}
+<div style={{ marginTop: '4rem' }}>
+  <DecryptedText
+  text="This text animates when in view"
+  animateOn="view"
+  revealDirection="center"
+  />
+</div>
+```
+
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| text | string | "" | The text content to decrypt. |
+| speed | number | 50 | Time in ms between each iteration. |
+| maxIterations | number | 10 | Max # of random iterations (non-sequential mode). |
+| sequential | boolean | false | Whether to reveal one character at a time in sequence. |
+| revealDirection | "start" | "end" | "center" | "start" | From which position characters begin to reveal in sequential mode. |
+| useOriginalCharsOnly | boolean | false | Restrict scrambling to only the characters already in the text. |
+| className | string | "" | CSS class for revealed characters. |
+| parentClassName | string | "" | CSS class for the main characters container. |
+| encryptedClassName | string | "" | CSS class for encrypted characters. |
+| animateOn | "view" | "hover" | "inViewHover" | "click" | "hover" | Trigger scrambling on hover or scroll-into-view. |
+| clickMode | "once" | "toggle" | "once" | Controls click behavior; only applies when animateOn is "click". |
+
+### Full Component Source
+```jsx
+'use client';
+
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { motion } from 'motion/react';
+
+const styles = {
+  wrapper: {
+    display: 'inline-block',
+    whiteSpace: 'pre-wrap'
+  },
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0,0,0,0)',
+    border: 0,
+    visibility: 'hidden'
+  }
+};
+
+export default function DecryptedText({
+  text,
+  speed = 50,
+  maxIterations = 10,
+  sequential = false,
+  revealDirection = 'start',
+  useOriginalCharsOnly = false,
+  characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+',
+  className = '',
+  parentClassName = '',
+  encryptedClassName = '',
+  animateOn = 'hover',
+  clickMode = 'once',
+  ...props
+}) {
+  const [displayText, setDisplayText] = useState(text);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [revealedIndices, setRevealedIndices] = useState(new Set());
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const [isDecrypted, setIsDecrypted] = useState(animateOn !== 'click');
+  const [direction, setDirection] = useState('forward');
+
+  const containerRef = useRef(null);
+  const orderRef = useRef([]);
+  const pointerRef = useRef(0);
+  const intervalRef = useRef(null);
+
+  const availableChars = useMemo(() => {
+    return useOriginalCharsOnly
+      ? Array.from(new Set(text.split(''))).filter(char => char !== ' ')
+      : characters.split('');
+  }, [useOriginalCharsOnly, text, characters]);
+
+  const shuffleText = useCallback(
+    (originalText, currentRevealed) => {
+      return originalText
+        .split('')
+        .map((char, i) => {
+          if (char === ' ') return ' ';
+          if (currentRevealed.has(i)) return originalText[i];
+          return availableChars[Math.floor(Math.random() * availableChars.length)];
+        })
+        .join('');
+    },
+    [availableChars]
+  );
+
+  const computeOrder = useCallback(
+    len => {
+      const order = [];
+      if (len <= 0) return order;
+      if (revealDirection === 'start') {
+        for (let i = 0; i < len; i++) order.push(i);
+        return order;
+      }
+      if (revealDirection === 'end') {
+        for (let i = len - 1; i >= 0; i--) order.push(i);
+        return order;
+      }
+      // center
+      const middle = Math.floor(len / 2);
+      let offset = 0;
+      while (order.length < len) {
+        if (offset % 2 === 0) {
+          const idx = middle + offset / 2;
+          if (idx >= 0 && idx < len) order.push(idx);
+        } else {
+          const idx = middle - Math.ceil(offset / 2);
+          if (idx >= 0 && idx < len) order.push(idx);
+        }
+        offset++;
+      }
+      return order.slice(0, len);
+    },
+    [revealDirection]
+  );
+
+  const fillAllIndices = useCallback(() => {
+    const s = new Set();
+    for (let i = 0; i < text.length; i++) s.add(i);
+    return s;
+  }, [text]);
+
+  const removeRandomIndices = useCallback((set, count) => {
+    const arr = Array.from(set);
+    for (let i = 0; i < count && arr.length > 0; i++) {
+      const idx = Math.floor(Math.random() * arr.length);
+      arr.splice(idx, 1);
+    }
+    return new Set(arr);
+  }, []);
+
+  const encryptInstantly = useCallback(() => {
+    const emptySet = new Set();
+    setRevealedIndices(emptySet);
+    setDisplayText(shuffleText(text, emptySet));
+    setIsDecrypted(false);
+  }, [text, shuffleText]);
+
+  const triggerDecrypt = useCallback(() => {
+    if (sequential) {
+      orderRef.current = computeOrder(text.length);
+      pointerRef.current = 0;
+      setRevealedIndices(new Set());
+    } else {
+      setRevealedIndices(new Set());
+    }
+    setDirection('forward');
+    setIsAnimating(true);
+  }, [sequential, computeOrder, text.length]);
+
+  const triggerReverse = useCallback(() => {
+    if (sequential) {
+      // compute forward order then reverse it: we'll remove indices in that order
+      orderRef.current = computeOrder(text.length).slice().reverse();
+      pointerRef.current = 0;
+      setRevealedIndices(fillAllIndices()); // start fully revealed
+      setDisplayText(shuffleText(text, fillAllIndices()));
+    } else {
+      // non-seq: start from fully revealed as well
+      setRevealedIndices(fillAllIndices());
+      setDisplayText(shuffleText(text, fillAllIndices()));
+    }
+    setDirection('reverse');
+    setIsAnimating(true);
+  }, [sequential, computeOrder, fillAllIndices, shuffleText, text]);
+
+  useEffect(() => {
+    if (!isAnimating) return;
+
+    let currentIteration = 0;
+
+    const getNextIndex = revealedSet => {
+      const textLength = text.length;
+      switch (revealDirection) {
+        case 'start':
+          return revealedSet.size;
+        case 'end':
+          return textLength - 1 - revealedSet.size;
+        case 'center': {
+          const middle = Math.floor(textLength / 2);
+          const offset = Math.floor(revealedSet.size / 2);
+          const nextIndex = revealedSet.size % 2 === 0 ? middle + offset : middle - offset - 1;
+
+          if (nextIndex >= 0 && nextIndex < textLength && !revealedSet.has(nextIndex)) {
+            return nextIndex;
+          }
+
+          for (let i = 0; i < textLength; i++) {
+            if (!revealedSet.has(i)) return i;
+          }
+          return 0;
+        }
+        default:
+          return revealedSet.size;
+      }
+    };
+
+    intervalRef.current = setInterval(() => {
+      setRevealedIndices(prevRevealed => {
+        if (sequential) {
+          // Forward
+          if (direction === 'forward') {
+            if (prevRevealed.size < text.length) {
+              const nextIndex = getNextIndex(prevRevealed);
+              const newRevealed = new Set(prevRevealed);
+              newRevealed.add(nextIndex);
+              setDisplayText(shuffleText(text, newRevealed));
+              return newRevealed;
+            } else {
+              clearInterval(intervalRef.current);
+              setIsAnimating(false);
+              setIsDecrypted(true);
+              return prevRevealed;
+            }
+          }
+          // Reverse
+          if (direction === 'reverse') {
+            if (pointerRef.current < orderRef.current.length) {
+              const idxToRemove = orderRef.current[pointerRef.current++];
+              const newRevealed = new Set(prevRevealed);
+              newRevealed.delete(idxToRemove);
+              setDisplayText(shuffleText(text, newRevealed));
+              if (newRevealed.size === 0) {
+                clearInterval(intervalRef.current);
+                setIsAnimating(false);
+                setIsDecrypted(false);
+              }
+              return newRevealed;
+            } else {
+              clearInterval(intervalRef.current);
+              setIsAnimating(false);
+              setIsDecrypted(false);
+              return prevRevealed;
+            }
+          }
+        } else {
+          // Non-Sequential
+          if (direction === 'forward') {
+            setDisplayText(shuffleText(text, prevRevealed));
+            currentIteration++;
+            if (currentIteration >= maxIterations) {
+              clearInterval(intervalRef.current);
+              setIsAnimating(false);
+              setDisplayText(text);
+              setIsDecrypted(true);
+            }
+            return prevRevealed;
+          }
+
+          // Non-Sequential Reverse
+          if (direction === 'reverse') {
+            let currentSet = prevRevealed;
+            if (currentSet.size === 0) {
+              currentSet = fillAllIndices();
+            }
+            const removeCount = Math.max(1, Math.ceil(text.length / Math.max(1, maxIterations)));
+            const nextSet = removeRandomIndices(currentSet, removeCount);
+            setDisplayText(shuffleText(text, nextSet));
+            currentIteration++;
+            if (nextSet.size === 0 || currentIteration >= maxIterations) {
+              clearInterval(intervalRef.current);
+              setIsAnimating(false);
+              setIsDecrypted(false);
+              // ensure final scrambled state
+              setDisplayText(shuffleText(text, new Set()));
+              return new Set();
+            }
+            return nextSet;
+          }
+        }
+        return prevRevealed;
+      });
+    }, speed);
+
+    return () => clearInterval(intervalRef.current);
+  }, [
+    isAnimating,
+    text,
+    speed,
+    maxIterations,
+    sequential,
+    revealDirection,
+    shuffleText,
+    direction,
+    fillAllIndices,
+    removeRandomIndices,
+    characters,
+    useOriginalCharsOnly
+  ]);
+
+  /* Click Behaviour */
+  const handleClick = () => {
+    if (animateOn !== 'click') return;
+
+    if (clickMode === 'once') {
+      if (isDecrypted) return;
+      setDirection('forward');
+      triggerDecrypt();
+    }
+
+    if (clickMode === 'toggle') {
+      if (isDecrypted) {
+        triggerReverse();
+      } else {
+        setDirection('forward');
+        triggerDecrypt();
+      }
+    }
+  };
+
+  /* Hover Behaviour */
+  const triggerHoverDecrypt = useCallback(() => {
+    if (isAnimating) return;
+
+    setRevealedIndices(new Set());
+    setIsDecrypted(false);
+    setDisplayText(text);
+    setDirection('forward');
+    setIsAnimating(true);
+  }, [isAnimating, text]);
+
+  const resetToPlainText = useCallback(() => {
+    clearInterval(intervalRef.current);
+    setIsAnimating(false);
+    setRevealedIndices(new Set());
+    setDisplayText(text);
+    setIsDecrypted(true);
+    setDirection('forward');
+  }, [text]);
+
+  /* View Observer */
+  useEffect(() => {
+    if (animateOn !== 'view' && animateOn !== 'inViewHover') return;
+
+    const observerCallback = entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasAnimated) {
+          triggerDecrypt();
+          setHasAnimated(true);
+        }
+      });
+    };
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    const currentRef = containerRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [animateOn, hasAnimated, triggerDecrypt]);
+
+  useEffect(() => {
+    if (animateOn === 'click') {
+      encryptInstantly();
+    } else {
+      setDisplayText(text);
+      setIsDecrypted(true);
+    }
+    setRevealedIndices(new Set());
+    setDirection('forward');
+  }, [animateOn, text, encryptInstantly]);
+
+  const animateProps =
+    animateOn === 'hover' || animateOn === 'inViewHover'
+      ? {
+          onMouseEnter: triggerHoverDecrypt,
+          onMouseLeave: resetToPlainText
+        }
+      : animateOn === 'click'
+        ? {
+            onClick: handleClick
+          }
+        : {};
+
+  return (
+    <motion.span className={parentClassName} ref={containerRef} style={styles.wrapper} {...animateProps} {...props}>
+      <span style={styles.srOnly}>{displayText}</span>
+
+      <span aria-hidden="true">
+        {displayText.split('').map((char, index) => {
+          const isRevealedOrDone = revealedIndices.has(index) || (!isAnimating && isDecrypted);
+
+          return (
+            <span key={index} className={isRevealedOrDone ? className : encryptedClassName}>
+              {char}
+            </span>
+          );
+        })}
+      </span>
+    </motion.span>
+  );
+}
+
+```
+
+### Integration Instructions
+1. Install any listed dependencies.
+2. Copy the component source into the appropriate directory in the project.
+3. Import and render the component using the usage example above as a starting point.
+4. Adjust props as needed for the specific use case — refer to the props table for all available options.
+
+### More from React Bits
+The full library index, including everything reactbits.dev offers, is at https://reactbits.dev/llms.txt — fetch it if this component is not the right fit or the project needs more pieces.
+
+## Integrate the <CometDial /> component from React Bits
+
+You are helping integrate an open-source React component into an existing application.
+
+### Component: CometDial
+### Variant: JavaScript + CSS
+### Dependencies: motion
+
+---
+
+### Usage Example
+```jsx
+import CometDial from './CometDial';
+
+<CometDial
+  defaultValue={62}
+  min={0}
+  max={100}
+  step={1}
+  unit="%"
+  label="Level"
+  accent="#f5f5f5"
+  ink="#fdfdfd"
+  size={250}
+  sweep={320}
+  thickness={5}
+  speed={25}
+  tapBounce={0.2}
+  flickBounce={0.1}
+  momentum={1}
+  cometReach={180}
+  cometWidth={12}
+  onChange={value => console.log(value)}
+  onChangeEnd={(value, { velocity, bounce }) => console.log('settling toward', value, velocity, bounce)}
+/>
+```
+
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| value | number | undefined | Controlled value. A change from outside launches the reading on the tap spring. |
+| defaultValue | number | 62 | Initial value when uncontrolled. |
+| min | number | 0 | Lowest value. |
+| max | number | 100 | Highest value. |
+| step | number | 1 | Snapping grid, and the keyboard nudge. |
+| unit | string | "%" | Suffix after the figure. Empty hides it. |
+| label | string | "Level" | Accessible name of the slider. |
+| accent | string | "#f5f5f5" | The lit arc, the bead and the comet. |
+| ink | string | "#fdfdfd" | The track and the readout. |
+| size | number | 250 | Diameter in pixels. Everything inside scales with it. |
+| sweep | number | 320 | Degrees the arc covers, with the gap centred at the bottom. |
+| thickness | number | 5 | Stroke width of the track and the arc. The bead follows it. |
+| speed | number | 25 | How quickly the reading arrives, 0 to 100. |
+| tapBounce | number | 0.2 | Ring-down after a tap. 0 stops dead. |
+| flickBounce | number | 0.1 | Ring-down after a full-speed flick. A slower release lands between the two. |
+| momentum | number | 1 | How far a flick carries the reading past where you let go. 0 drops it where released. |
+| cometReach | number | 180 | Degrees of trail behind the bead at full speed. |
+| cometWidth | number | 12 | Extra stroke width at the head of the trail at full speed. |
+| disabled | boolean | false | Dims the dial and ignores input. |
+| onChange | (value: number) => void | - | Called on every snapped change, including during a drag. |
+| onChangeEnd | (value: number, detail: { velocity: number; bounce: number }) => void | - | Called on release and on a key, with the release velocity and the bounce it earned. |
+| className | string | "" | Extra classes for the root. |
+
+### Full Component Source
+```jsx
+'use client';
+
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { animate, useMotionValue, useReducedMotion } from 'motion/react';
+
+import './CometDial.css';
+
+const R = 80;
+const DEAD = 44;
+const K = 12;
+const V_FULL = 4;
+const V_FLICK = 2;
+const TAU_FOLLOW = 0.06;
+const TAU_V = 0.05;
+const DECEL = 0.99;
+const DRAG_PX = 10;
+const STALE_MS = 80;
+
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const velocityOf = hist => {
+  if (hist.length < 2) return 0;
+  const a = hist[0];
+  const b = hist[hist.length - 1];
+  return ((b[1] - a[1]) / Math.max(1, b[0] - a[0])) * 1000;
+};
+const decimalsOf = step => {
+  const s = String(step);
+  const i = s.indexOf('.');
+  return i === -1 ? 0 : s.length - i - 1;
+};
+const pointAt = deg => {
+  const a = (deg * Math.PI) / 180;
+  return [100 + Math.cos(a) * R, 100 + Math.sin(a) * R];
+};
+const arcPath = (a0, a1) => {
+  const [x0, y0] = pointAt(a0);
+  const [x1, y1] = pointAt(a1);
+  return `M ${x0.toFixed(3)} ${y0.toFixed(3)} A ${R} ${R} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1.toFixed(3)} ${y1.toFixed(3)}`;
+};
+
+export default function CometDial({
+  value,
+  defaultValue = 62,
+  min = 0,
+  max = 100,
+  step = 1,
+  unit = '%',
+  label = 'Level',
+  accent = '#f5f5f5',
+  ink = '#fdfdfd',
+  size = 250,
+  sweep = 320,
+  thickness = 5,
+  speed = 25,
+  tapBounce = 0.2,
+  flickBounce = 0.1,
+  momentum = 1,
+  cometReach = 180,
+  cometWidth = 12,
+  disabled = false,
+  onChange,
+  onChangeEnd,
+  className = ''
+}) {
+  const reduce = useReducedMotion();
+  const [dragging, setDragging] = useState(false);
+  const svgRef = useRef(null);
+  const litRef = useRef(null);
+  const headRef = useRef(null);
+  const comet = useRef([]);
+  const figure = useRef(null);
+  const target = useRef(clamp(value ?? defaultValue, min, max));
+  const grip = useRef(null);
+  const unbind = useRef(null);
+  const loop = useRef({ raf: 0, last: 0, v: 0, rPrev: null, text: '', valueText: '' });
+  const live = useRef({});
+  const reading = useMotionValue(target.current);
+
+  const range = Math.max(1e-9, max - min);
+  const gap = 360 - sweep;
+  const start = 90 + gap / 2;
+  const end = start + sweep;
+  const decimals = decimalsOf(step);
+  const k = 200 + (clamp(speed, 0, 100) / 100) * 700;
+  const crit = 2 * Math.sqrt(k);
+  const snap = v => (step > 0 ? clamp(Math.round((v - min) / step) * step + min, min, max) : clamp(v, min, max));
+
+  const commit = (v, finished, detail) => {
+    const s = snap(v);
+    if (s !== target.current) {
+      target.current = s;
+      onChange?.(s);
+    }
+    if (finished) onChangeEnd?.(s, detail ?? { velocity: 0, bounce: tapBounce });
+  };
+
+  const paintRef = useRef(null);
+  const tick = useCallback(now => paintRef.current?.(now), []);
+  const wake = () => {
+    const L = loop.current;
+    if (L.raf) return;
+    L.last = performance.now();
+    L.rPrev = null;
+    L.raf = requestAnimationFrame(tick);
+  };
+  const launch = (to, bounce, velocity = reading.getVelocity()) => {
+    reading.stop();
+    if (reduce) {
+      reading.jump(to);
+      wake();
+      return;
+    }
+    animate(reading, to, {
+      type: 'spring',
+      stiffness: k,
+      damping: crit * (1 - clamp(bounce, 0, 0.9)),
+      mass: 1,
+      velocity
+    });
+    wake();
+  };
+
+  const paint = now => {
+    const L = loop.current;
+    const svg = svgRef.current;
+    if (!svg) {
+      L.raf = 0;
+      return;
+    }
+    const dt = clamp((now - L.last) / 1000, 0, 0.05);
+    L.last = now;
+    const g = grip.current;
+    if (g && g.at != null) {
+      if (reduce) reading.jump(g.at);
+      else reading.set(reading.get() + (g.at - reading.get()) * (1 - Math.exp(-dt / TAU_FOLLOW)));
+    }
+    const r = reading.get();
+    const vRaw = L.rPrev == null || dt === 0 || reduce ? 0 : (r - L.rPrev) / dt / range;
+    L.rPrev = r;
+    L.v += (vRaw - L.v) * (1 - Math.exp(-dt / TAU_V));
+    const v = L.v;
+    const s = clamp(Math.abs(v) / V_FULL, 0, 1);
+    const dir = Math.sign(v) || 1;
+    const f = clamp((r - min) / range, 0, 1);
+    const ang = start + f * sweep;
+    if (litRef.current) litRef.current.setAttribute('d', f > 0.0005 ? arcPath(start, ang) : '');
+    if (headRef.current) {
+      const [cx, cy] = pointAt(ang);
+      headRef.current.setAttribute('cx', cx.toFixed(3));
+      headRef.current.setAttribute('cy', cy.toFixed(3));
+    }
+    const seg = (cometReach * s) / K;
+    for (let j = 0; j < K; j++) {
+      const el = comet.current[j];
+      if (!el) continue;
+      let a0 = dir > 0 ? ang - (j + 1) * seg : ang + j * seg;
+      let a1 = dir > 0 ? ang - j * seg : ang + (j + 1) * seg;
+      a0 = clamp(a0, start, end);
+      a1 = clamp(a1, start, end);
+      if (seg < 0.01 || a1 - a0 < 0.01) {
+        if (el.style.opacity !== '0') el.style.opacity = '0';
+        continue;
+      }
+      const w = 1 - j / K;
+      el.setAttribute('d', arcPath(a0, a1));
+      el.setAttribute('stroke-width', (thickness + cometWidth * w * s).toFixed(2));
+      el.style.opacity = (w * s).toFixed(3);
+    }
+    const shown = clamp(r, min, max).toFixed(decimals);
+    if (shown !== L.text) {
+      L.text = shown;
+      if (figure.current) figure.current.textContent = shown;
+      svg.setAttribute('aria-valuenow', shown);
+    }
+    const valueText = `${target.current}${unit}`;
+    if (valueText !== L.valueText) {
+      L.valueText = valueText;
+      svg.setAttribute('aria-valuetext', valueText);
+    }
+    const moving = !!g || reading.isAnimating() || Math.abs(v) > 0.002;
+    if (!moving) {
+      for (const el of comet.current) if (el && el.style.opacity !== '0') el.style.opacity = '0';
+    }
+    L.raf = moving ? requestAnimationFrame(tick) : 0;
+  };
+  paintRef.current = paint;
+
+  const localPoint = (cx, cy) => {
+    const b = svgRef.current.getBoundingClientRect();
+    return [((cx - b.left) / b.width) * 200 - 100, ((cy - b.top) / b.height) * 200 - 100];
+  };
+  const angleAt = (cx, cy) => {
+    const [x, y] = localPoint(cx, cy);
+    let rel = ((Math.atan2(y, x) * 180) / Math.PI - start + 720) % 360;
+    const g = grip.current;
+    if (rel > sweep) rel = g && g.side ? (g.side === 'hi' ? sweep : 0) : rel < sweep + gap / 2 ? sweep : 0;
+    else if (g) g.side = rel > sweep / 2 ? 'hi' : 'lo';
+    return min + (rel / sweep) * range;
+  };
+
+  const move = e => {
+    const g = grip.current;
+    if (!g || g.id !== e.pointerId) return;
+    if (!g.moved) {
+      if (Math.hypot(e.clientX - g.x0, e.clientY - g.y0) < DRAG_PX) return;
+      g.moved = true;
+      reading.stop();
+    }
+    g.at = angleAt(e.clientX, e.clientY);
+    g.hist.push([performance.now(), g.at]);
+    if (g.hist.length > 4) g.hist.shift();
+    commit(g.at, false);
+    wake();
+  };
+  const up = e => {
+    const g = grip.current;
+    if (!g || g.id !== e.pointerId) return;
+    grip.current = null;
+    unbind.current?.();
+    unbind.current = null;
+    setDragging(false);
+    try {
+      svgRef.current?.releasePointerCapture(e.pointerId);
+    } catch {}
+    if (!g.moved) {
+      commit(target.current, true);
+      return;
+    }
+    const stale = performance.now() - g.hist[g.hist.length - 1][0] > STALE_MS;
+    const v = e.type === 'pointercancel' || stale ? 0 : velocityOf(g.hist);
+    const bounce = tapBounce + (flickBounce - tapBounce) * clamp(Math.abs(v) / range / V_FLICK, 0, 1);
+    const to = snap((g.at ?? target.current) + (v / 1000) * (DECEL / (1 - DECEL)) * momentum);
+    commit(to, true, { velocity: v, bounce });
+    launch(to, bounce, v);
+  };
+  live.current = { move, up };
+
+  const down = e => {
+    if (disabled || grip.current || e.button > 0) return;
+    const [x, y] = localPoint(e.clientX, e.clientY);
+    if (Math.hypot(x, y) < DEAD) return;
+    e.preventDefault();
+    const svg = svgRef.current;
+    try {
+      svg.setPointerCapture(e.pointerId);
+    } catch {}
+    svg.focus({ preventScroll: true });
+    grip.current = { id: e.pointerId, at: null, hist: [], side: null, moved: false, x0: e.clientX, y0: e.clientY };
+    const at = angleAt(e.clientX, e.clientY);
+    grip.current.hist.push([performance.now(), at]);
+    setDragging(true);
+    commit(at, false);
+    launch(snap(at), tapBounce);
+    const onMove = ev => {
+      if (ev.isTrusted) live.current.move(ev);
+    };
+    const onUp = ev => {
+      if (ev.isTrusted) live.current.up(ev);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    unbind.current = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  };
+
+  const key = e => {
+    if (disabled) return;
+    const t = target.current;
+    const big = e.shiftKey ? 10 : 1;
+    let to;
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowUp':
+        to = t + step * big;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        to = t - step * big;
+        break;
+      case 'PageUp':
+        to = t + step * 10;
+        break;
+      case 'PageDown':
+        to = t - step * 10;
+        break;
+      case 'Home':
+        to = min;
+        break;
+      case 'End':
+        to = max;
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    to = snap(to);
+    reading.stop();
+    reading.jump(to);
+    commit(to, true);
+    wake();
+  };
+
+  useLayoutEffect(() => {
+    const L = loop.current;
+    L.text = '';
+    L.valueText = '';
+    paintRef.current?.(performance.now());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [min, max, step, sweep, thickness, cometReach, cometWidth, unit]);
+  useEffect(() => {
+    if (value === undefined || grip.current) return;
+    const s = snap(value);
+    if (s === target.current) return;
+    target.current = s;
+    launch(s, tapBounce);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(loop.current.raf);
+      unbind.current?.();
+      reading.stop();
+    },
+    [reading]
+  );
+
+  return (
+    <div
+      className={`comet-dial${className ? ` ${className}` : ''}`}
+      data-dragging={dragging ? '' : undefined}
+      data-disabled={disabled ? '' : undefined}
+      style={{
+        '--cd-accent': accent,
+        '--cd-ink': ink,
+        '--cd-size': `${size}px`,
+        '--cd-figure': `${Math.round(size * 0.16)}px`
+      }}
+    >
+      <svg
+        ref={svgRef}
+        className="comet-dial__ring"
+        viewBox="0 0 200 200"
+        role="slider"
+        tabIndex={disabled ? -1 : 0}
+        aria-label={label}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={target.current}
+        aria-valuetext={`${target.current}${unit}`}
+        aria-disabled={disabled || undefined}
+        onPointerDown={down}
+        onKeyDown={key}
+      >
+        <path className="comet-dial__track" d={arcPath(start, end)} strokeWidth={thickness} />
+        <path ref={litRef} className="comet-dial__lit" strokeWidth={thickness} />
+        <g className="comet-dial__comet">
+          {Array.from({ length: K }, (_, j) => (
+            <path
+              key={j}
+              ref={el => {
+                comet.current[j] = el;
+              }}
+              style={{ opacity: 0 }}
+            />
+          ))}
+        </g>
+        <circle ref={headRef} className="comet-dial__head" r={thickness * 1.8} />
+      </svg>
+      <div className="comet-dial__readout" aria-hidden="true">
+        <span className="comet-dial__value">
+          <span ref={figure} className="comet-dial__figure" />
+          {unit ? <span className="comet-dial__unit">{unit}</span> : null}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+```
+
+### Component CSS
+```css
+.comet-dial {
+  --cd-accent: #f5f5f5;
+  --cd-ink: #fdfdfd;
+  --cd-size: 250px;
+  --cd-figure: 40px;
+
+  position: relative;
+  width: var(--cd-size);
+  height: var(--cd-size);
+  color: var(--cd-ink);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.comet-dial__ring {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  outline: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.comet-dial[data-dragging] .comet-dial__ring {
+  cursor: grabbing;
+}
+
+.comet-dial__track,
+.comet-dial__lit,
+.comet-dial__comet path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.comet-dial__track {
+  stroke: var(--cd-ink);
+  opacity: 0.24;
+}
+
+.comet-dial__lit {
+  stroke: var(--cd-accent);
+  opacity: 0.7;
+}
+
+.comet-dial__comet path {
+  stroke: var(--cd-accent);
+}
+
+.comet-dial__head {
+  fill: var(--cd-accent);
+}
+
+.comet-dial__readout {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.comet-dial__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.06em;
+  font-size: var(--cd-figure);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.comet-dial__unit {
+  font-size: 0.5em;
+  opacity: 0.5;
+}
+
+.comet-dial[data-disabled] {
+  opacity: 0.55;
+}
+
+.comet-dial[data-disabled] .comet-dial__ring {
+  cursor: default;
+  pointer-events: none;
+}
+
+```
+
+### Integration Instructions
+1. Install any listed dependencies.
+2. Copy the component source into the appropriate directory in the project.
+3. Import the CSS file alongside the component.
+4. Import and render the component using the usage example above as a starting point.
+5. Adjust props as needed for the specific use case — refer to the props table for all available options.
+
+### More from React Bits
+The full library index, including everything reactbits.dev offers, is at https://reactbits.dev/llms.txt — fetch it if this component is not the right fit or the project needs more pieces.
+
+## Integrate the <AccordionGallery /> component from React Bits
+
+You are helping integrate an open-source React component into an existing application.
+
+### Component: AccordionGallery
+### Variant: JavaScript + CSS
+### Dependencies: gsap
+
+---
+
+### Usage Example
+```jsx
+import AccordionGallery from './AccordionGallery'
+
+const items = [
+  { image: 'https://picsum.photos/id/1015/900/1200', label: 'Canyon', link: '#' },
+  { image: 'https://picsum.photos/id/1018/900/1200', label: 'Ridgeline', link: '#' },
+  { image: 'https://picsum.photos/id/1039/900/1200', label: 'Falls', link: '#' },
+  { image: 'https://picsum.photos/id/1043/900/1200', label: 'Harbour', link: '#' },
+  { image: 'https://picsum.photos/id/1044/900/1200', label: 'Skyline', link: '#' }
+];
+
+<AccordionGallery
+  items={items}
+  defaultIndex={2}
+  expandRatio={0.52}
+  trigger="hover"
+/>
+```
+
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| items | Array<{ image: string; label?: string; link?: string; alt?: string }> | 5 sample panels | The panels to render. Each needs an image, and optionally a label, link and alt text. |
+| defaultIndex | number | 2 | Index of the panel that is expanded on load, so the gallery never looks dead. |
+| accentColor | string | "#ffffff" | Colour of the caption accent bar and the focus ring. |
+| overlayColor | string | "#060010" | Colour used for the bottom legibility gradient and the dimming of collapsed panels. |
+| textColor | string | "#ffffff" | Colour of the caption text. |
+| grayscale | boolean | true | Desaturate collapsed panels and restore full colour on the expanded one. |
+| showLabels | boolean | true | Whether captions reveal on the expanded panel. |
+| duration | number | 0.6 | Duration of the expand / collapse transition in seconds. |
+| ease | string | "power3.out" | GSAP easing used for every transition. |
+| parallax | number | 0.5 | Strength of the internal image drift as panels resize (0 disables it). |
+| tilt | number | 8 | Degrees of 3D rotation applied to collapsed panels, easing to flat on the open one. |
+| stagger | number | 0.06 | Delay between the caption bar and text reveal, in seconds. |
+| trigger | "hover" | "click" | "hover" | How a panel expands on pointer devices. Focus and tap always expand too. |
+| height | number | 460 | Height of the row in pixels (width of the column when vertical). |
+| gap | number | 10 | Gap between panels in pixels. |
+| radius | number | 16 | Corner radius of each panel in pixels. |
+| expandRatio | number | 0.52 | Fraction of the row the expanded panel occupies (0.2 – 0.9). |
+| orientation | "horizontal" | "vertical" | "horizontal" | Lay the accordion out as a row or a column. |
+
+### Full Component Source
+```jsx
+'use client';
+
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { gsap } from 'gsap';
+
+import './AccordionGallery.css';
+
+const DEFAULT_ITEMS = [
+  { image: 'https://picsum.photos/id/1015/900/1200', label: 'Canyon', link: '#' },
+  { image: 'https://picsum.photos/id/1018/900/1200', label: 'Ridgeline', link: '#' },
+  { image: 'https://picsum.photos/id/1039/900/1200', label: 'Falls', link: '#' },
+  { image: 'https://picsum.photos/id/1043/900/1200', label: 'Harbour', link: '#' },
+  { image: 'https://picsum.photos/id/1044/900/1200', label: 'Skyline', link: '#' }
+];
+
+const AccordionGallery = ({
+  items = DEFAULT_ITEMS,
+  defaultIndex = 2,
+  accentColor = '#ffffff',
+  overlayColor = '#060010',
+  textColor = '#ffffff',
+  height = 460,
+  gap = 10,
+  radius = 16,
+  expandRatio = 0.52,
+  orientation = 'horizontal',
+  duration = 0.6,
+  ease = 'power3.out',
+  parallax = 0.5,
+  tilt = 8,
+  stagger = 0.06,
+  trigger = 'hover',
+  showLabels = true,
+  grayscale = true,
+  className = ''
+}) => {
+  const rootRef = useRef(null);
+  const panelRefs = useRef([]);
+  const mediaRefs = useRef([]);
+  const barRefs = useRef([]);
+  const textRefs = useRef([]);
+  const tlRef = useRef(null);
+  const firstRunRef = useRef(true);
+  const mediaSizeRef = useRef(320);
+
+  const vertical = orientation === 'vertical';
+  const count = items.length;
+  const [active, setActive] = useState(Math.min(Math.max(defaultIndex, 0), count - 1));
+
+  const prefersReduced =
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
+
+  const applyLayout = useCallback(
+    animate => {
+      const panels = panelRefs.current;
+      if (!panels.length) return;
+
+      const r = Math.min(Math.max(expandRatio, 0.2), 0.9);
+      const grow = count > 1 ? (r * (count - 1)) / (1 - r) : 1;
+      const mediaSize = mediaSizeRef.current;
+
+      tlRef.current?.kill();
+      const dur = animate && !prefersReduced ? duration : 0;
+      const tl = gsap.timeline();
+
+      panels.forEach((panel, i) => {
+        if (!panel) return;
+        const isActive = i === active;
+        const media = mediaRefs.current[i];
+        const bar = barRefs.current[i];
+        const text = textRefs.current[i];
+
+        const rot = isActive ? 0 : i < active ? tilt : -tilt;
+        const rotProp = vertical ? { rotateX: -rot } : { rotateY: rot };
+
+        tl.to(panel, { flexGrow: isActive ? grow : 1, ...rotProp, duration: dur, ease }, 0);
+
+        if (media) {
+          const drift = Math.max(-1.5, Math.min(1.5, active - i));
+          const shift = drift * parallax * mediaSize * 0.06;
+          const gray = grayscale ? (isActive ? 0 : 1) : 0;
+          tl.to(
+            media,
+            {
+              xPercent: -50,
+              yPercent: -50,
+              x: vertical ? 0 : isActive ? 0 : shift,
+              y: vertical ? (isActive ? 0 : shift) : 0,
+              '--ag-gray': gray,
+              '--ag-dim': isActive ? 0 : 0.35,
+              duration: dur,
+              ease
+            },
+            0
+          );
+        }
+
+        if (showLabels && bar && text) {
+          if (isActive) {
+            tl.to([bar, text], { opacity: 1, x: 0, duration: dur, ease, stagger: prefersReduced ? 0 : stagger }, 0);
+          } else {
+            tl.to([bar, text], { opacity: 0, x: -14, duration: dur * 0.6, ease }, 0);
+          }
+        }
+      });
+
+      tlRef.current = tl;
+    },
+    [
+      active,
+      count,
+      expandRatio,
+      duration,
+      ease,
+      vertical,
+      tilt,
+      parallax,
+      grayscale,
+      showLabels,
+      stagger,
+      prefersReduced
+    ]
+  );
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      const total = vertical ? rect.height : rect.width;
+      const usable = Math.max(total - gap * (count - 1), 120);
+      const size = Math.max(140, usable * Math.min(Math.max(expandRatio, 0.2), 0.9) * 1.22);
+      mediaSizeRef.current = size;
+      el.style.setProperty('--ag-media-size', `${size}px`);
+      applyLayout(!firstRunRef.current);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [applyLayout, gap, count, expandRatio, vertical]);
+
+  useEffect(() => {
+    applyLayout(!firstRunRef.current);
+    firstRunRef.current = false;
+  }, [applyLayout]);
+
+  useEffect(
+    () => () => {
+      tlRef.current?.kill();
+    },
+    []
+  );
+
+  const handleEnter = i => {
+    if (trigger === 'hover') setActive(i);
+  };
+
+  const handleClick = (i, e) => {
+    if (i !== active) {
+      e.preventDefault();
+      setActive(i);
+    }
+  };
+
+  const handleKeyDown = (i, e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive((i + 1) % count);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive((i - 1 + count) % count);
+    }
+  };
+
+  return (
+    <div
+      ref={rootRef}
+      className={`accordion-gallery${vertical ? ' accordion-gallery--vertical' : ''}${className ? ` ${className}` : ''}`}
+      style={{
+        '--ag-accent': accentColor,
+        '--ag-overlay': overlayColor,
+        '--ag-text': textColor,
+        '--ag-gap': `${gap}px`,
+        '--ag-radius': `${radius}px`,
+        height: vertical ? `${Math.round(height * 1.6)}px` : `${height}px`
+      }}
+      role="list"
+      aria-label="Image accordion gallery"
+    >
+      {items.map((item, i) => {
+        const isActive = i === active;
+        const Tag = item.link ? 'a' : 'div';
+        return (
+          <Tag
+            key={i}
+            ref={el => (panelRefs.current[i] = el)}
+            className={`ag-panel${isActive ? ' ag-panel--active' : ''}`}
+            style={{ borderRadius: `${radius}px` }}
+            href={item.link || undefined}
+            onClick={e => handleClick(i, e)}
+            onMouseEnter={() => handleEnter(i)}
+            onFocus={() => setActive(i)}
+            onKeyDown={e => handleKeyDown(i, e)}
+            role="listitem"
+            tabIndex={0}
+            aria-current={isActive ? 'true' : undefined}
+            aria-label={item.label}
+          >
+            <span className="ag-panel__frame">
+              <span className="ag-panel__media" ref={el => (mediaRefs.current[i] = el)}>
+                <img src={item.image} alt={item.alt || item.label || ''} draggable="false" />
+              </span>
+              <span className="ag-panel__overlay" aria-hidden="true" />
+            </span>
+            {showLabels && (
+              <span className="ag-panel__label" aria-hidden="true">
+                <span className="ag-panel__bar" ref={el => (barRefs.current[i] = el)} />
+                <span className="ag-panel__text" ref={el => (textRefs.current[i] = el)}>
+                  {item.label}
+                </span>
+              </span>
+            )}
+          </Tag>
+        );
+      })}
+    </div>
+  );
+};
+
+export default AccordionGallery;
+
+```
+
+### Component CSS
+```css
+.accordion-gallery {
+  --ag-accent: #ffffff;
+  --ag-overlay: #060010;
+  --ag-text: #ffffff;
+  --ag-gap: 10px;
+  --ag-radius: 16px;
+  --ag-media-size: 320px;
+
+  display: flex;
+  flex-direction: row;
+  gap: var(--ag-gap);
+  width: 100%;
+  max-width: 100%;
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+}
+
+.accordion-gallery--vertical {
+  flex-direction: column;
+}
+
+.ag-panel {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--ag-radius);
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  outline: none;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  background: #0a0713;
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.8);
+  will-change: flex-grow, transform;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ag-panel:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ag-accent),
+    0 10px 30px -18px rgba(0, 0, 0, 0.8);
+}
+
+.ag-panel__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.ag-panel__media {
+  --ag-gray: 1;
+  --ag-dim: 0.35;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--ag-media-size);
+  height: 100%;
+  filter: grayscale(var(--ag-gray));
+  will-change: transform, filter;
+}
+
+.accordion-gallery--vertical .ag-panel__media {
+  width: 100%;
+  height: var(--ag-media-size);
+}
+
+.ag-panel__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ag-panel__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 45%, color-mix(in srgb, var(--ag-overlay) 78%, transparent) 100%),
+    color-mix(in srgb, var(--ag-overlay) calc(var(--ag-dim, 0.35) * 100%), transparent);
+}
+
+.ag-panel__label {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ag-panel__bar {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 26px;
+  border-radius: 3px;
+  background: var(--ag-accent);
+  opacity: 0;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--ag-accent) 60%, transparent);
+}
+
+.ag-panel__text {
+  color: var(--ag-text);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+}
+
+@media (max-width: 520px) {
+  .accordion-gallery {
+    flex-direction: column;
+    perspective: none;
+    height: auto !important;
+  }
+  .ag-panel {
+    min-height: 84px;
+    transform: none !important;
+  }
+  .accordion-gallery .ag-panel__media {
+    width: 100%;
+    height: var(--ag-media-size);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-panel,
+  .ag-panel__media {
+    will-change: auto;
+  }
+}
+
+```
+
+### Integration Instructions
+1. Install any listed dependencies.
+2. Copy the component source into the appropriate directory in the project.
+3. Import the CSS file alongside the component.
+4. Import and render the component using the usage example above as a starting point.
+5. Adjust props as needed for the specific use case — refer to the props table for all available options.
+
+### More from React Bits
+The full library index, including everything rea## Integrate the <ScrollExpand /> component from React Bits
+
+You are helping integrate an open-source React component into an existing application.
+
+### Component: ScrollExpand
+### Variant: JavaScript + CSS
+
+
+---
+
+### Usage Example
+```jsx
+import ScrollExpand from './ScrollExpand';
+
+<ScrollExpand
+  src="/hero.jpg"
+  alt="Product hero"
+  title="Built to scale"
+  scrollHint="Scroll"
+  useWindowScroll
+>
+  <h2>Every pixel, everywhere</h2>
+  <p>The frame opens up as you scroll and hands the whole stage to your media.</p>
+</ScrollExpand>
+
+<div style={{ height: '520px' }}>
+  <ScrollExpand src="/hero.jpg" title="Built to scale" mediaZoom={1.35} />
+</div>
+```
+
+### Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| src | string | '' | Image or video URL shown inside the frame. |
+| mediaType | "image" | "video" | "image" | Whether the source is an image or a looping muted video. |
+| poster | string | '' | Poster frame used while a video loads. |
+| alt | string | '' | Alt text for the image. |
+| title | string | '' | Headline held over the frame that lifts away as the media takes over. |
+| scrollHint | string | '' | Small cue shown under the resting frame that fades away as soon as the scroll begins. |
+| startWidth | number | 42 | Frame width before expanding, as a percentage of the stage. |
+| startHeight | number | 58 | Frame height before expanding, as a percentage of the stage. |
+| startRadius | number | 24 | Corner radius of the resting frame, in px. |
+| endRadius | number | 0 | Corner radius once fully expanded, in px. |
+| mediaZoom | number | 1.35 | How far the media is zoomed in at rest. It eases back to 1 as the frame opens up. |
+| scrollDistance | number | 1.2 | Scroll length of the expansion, in multiples of the stage height. |
+| holdDistance | number | 0.35 | Extra scroll the frame stays pinned at full bleed before releasing. |
+| smoothing | number | 0.1 | Follow time in seconds. 0 locks the frame exactly to the scrollbar. |
+| overlayScrim | number | 0.45 | Strength of the gradient scrim that fades in to keep overlay content readable. |
+| useWindowScroll | boolean | false | Drive the expansion from the page scroll instead of the component’s own scroller. |
+| enabled | boolean | true | Enable or disable the expansion. |
+| children | React.ReactNode | — | Content that fades in over the media once it reaches full bleed. |
+| className | string | '' | Additional class names for the container. |
+| style | object | — | Inline styles for the container. |
+
+### Full Component Source
+```jsx
+'use client';
+
+import { useCallback, useEffect, useRef } from 'react';
+
+import './ScrollExpand.css';
+
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+
+const smoothstep = (edge0, edge1, x) => {
+  const t = clamp((x - edge0) / (edge1 - edge0 || 1e-6), 0, 1);
+  return t * t * (3 - 2 * t);
+};
+
+const ScrollExpand = ({
+  src = '',
+  mediaType = 'image',
+  poster = '',
+  alt = '',
+  title = '',
+  scrollHint = '',
+  startWidth = 42,
+  startHeight = 58,
+  startRadius = 24,
+  endRadius = 0,
+  mediaZoom = 1.35,
+  scrollDistance = 1.2,
+  holdDistance = 0.35,
+  smoothing = 0.1,
+  overlayScrim = 0.45,
+  useWindowScroll = false,
+  enabled = true,
+  children,
+  className = '',
+  style,
+  ...rest
+}) => {
+  const rootRef = useRef(null);
+  const trackRef = useRef(null);
+  const stageRef = useRef(null);
+  const frameRef = useRef(null);
+  const mediaRef = useRef(null);
+  const titleRef = useRef(null);
+  const overlayRef = useRef(null);
+  const scrimRef = useRef(null);
+  const hintRef = useRef(null);
+
+  const propsRef = useRef({});
+  propsRef.current = {
+    startWidth,
+    startHeight,
+    startRadius,
+    endRadius,
+    mediaZoom,
+    scrollDistance,
+    holdDistance,
+    smoothing,
+    overlayScrim,
+    useWindowScroll,
+    enabled
+  };
+
+  const applyProgress = useCallback(p => {
+    const frame = frameRef.current;
+    const media = mediaRef.current;
+    if (!frame || !media) return;
+    const c = propsRef.current;
+
+    const e = smoothstep(0, 1, p);
+
+    const w = c.startWidth + (100 - c.startWidth) * e;
+    const h = c.startHeight + (100 - c.startHeight) * e;
+    const ix = Math.max(0, (100 - w) / 2);
+    const iy = Math.max(0, (100 - h) / 2);
+    const r = c.startRadius + (c.endRadius - c.startRadius) * e;
+    frame.style.clipPath = `inset(${iy}% ${ix}% ${iy}% ${ix}% round ${r}px)`;
+
+    media.style.transform = `scale(${c.mediaZoom + (1 - c.mediaZoom) * e})`;
+
+    if (scrimRef.current) scrimRef.current.style.opacity = `${c.overlayScrim * e}`;
+
+    if (titleRef.current) {
+      const out = smoothstep(0.4, 0.88, p);
+      titleRef.current.style.opacity = `${1 - out}`;
+      titleRef.current.style.transform = `translate3d(0, ${-28 * out}px, 0) scale(${1 + 0.06 * out})`;
+    }
+
+    if (hintRef.current) {
+      const gone = smoothstep(0, 0.12, p);
+      hintRef.current.style.opacity = `${1 - gone}`;
+      hintRef.current.style.transform = `translate3d(0, ${8 * gone}px, 0)`;
+    }
+
+    if (overlayRef.current) {
+      const inn = smoothstep(0.68, 1, p);
+      overlayRef.current.style.opacity = `${inn}`;
+      overlayRef.current.style.transform = `translate3d(0, ${18 * (1 - inn)}px, 0)`;
+    }
+  }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const track = trackRef.current;
+    const stage = stageRef.current;
+    if (!root || !track || !stage) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let raf = 0;
+    let current = 0;
+    let target = 0;
+    let stageH = 0;
+    let running = false;
+
+    const measure = () => {
+      const c = propsRef.current;
+      stageH = c.useWindowScroll ? window.innerHeight : root.clientHeight;
+      if (stageH <= 0) return;
+      stage.style.height = `${stageH}px`;
+      track.style.height = `${stageH * (1 + Math.max(0, c.scrollDistance) + Math.max(0, c.holdDistance))}px`;
+
+      const w = root.clientWidth || stageH;
+      stage.style.setProperty('--se-title-size', `${clamp(w * 0.075, 20, 84)}px`);
+    };
+
+    const readProgress = () => {
+      const c = propsRef.current;
+      if (!c.enabled) return 1;
+      const span = stageH * Math.max(0.01, c.scrollDistance);
+      if (c.useWindowScroll) {
+        const top = track.getBoundingClientRect().top;
+        return clamp(-top / span, 0, 1);
+      }
+      return clamp(root.scrollTop / span, 0, 1);
+    };
+
+    const tick = () => {
+      const c = propsRef.current;
+      const k = c.smoothing <= 0 ? 1 : 1 - Math.exp(-1 / (60 * c.smoothing));
+      current += (target - current) * k;
+      if (Math.abs(target - current) < 0.0004) {
+        current = target;
+        running = false;
+      }
+      applyProgress(current);
+      raf = running ? requestAnimationFrame(tick) : 0;
+    };
+
+    const kick = () => {
+      if (running) return;
+      running = true;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    const onScroll = () => {
+      target = readProgress();
+      if (propsRef.current.smoothing <= 0 || reduceMotion) {
+        current = target;
+        applyProgress(current);
+        return;
+      }
+      kick();
+    };
+
+    const onResize = () => {
+      measure();
+      target = readProgress();
+      current = target;
+      applyProgress(current);
+    };
+
+    measure();
+    target = readProgress();
+    current = target;
+    applyProgress(current);
+
+    const scroller = useWindowScroll ? window : root;
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    const ro = new ResizeObserver(onResize);
+    ro.observe(root);
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      scroller.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      ro.disconnect();
+    };
+  }, [applyProgress, useWindowScroll]);
+
+  const media =
+    mediaType === 'video' ? (
+      <video
+        ref={mediaRef}
+        className="scroll-expand__media"
+        src={src}
+        poster={poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
+    ) : (
+      <img ref={mediaRef} className="scroll-expand__media" src={src} alt={alt} draggable={false} />
+    );
+
+  return (
+    <div
+      ref={rootRef}
+      className={`scroll-expand ${useWindowScroll ? '' : 'scroll-expand--scroller'} ${className}`.trim()}
+      style={style}
+      {...rest}
+    >
+      <div ref={trackRef} className="scroll-expand__track">
+        <div ref={stageRef} className="scroll-expand__stage">
+          <div ref={frameRef} className="scroll-expand__frame">
+            {media}
+            <div ref={scrimRef} className="scroll-expand__scrim" />
+            {children ? (
+              <div ref={overlayRef} className="scroll-expand__overlay">
+                {children}
+              </div>
+            ) : null}
+          </div>
+          {title ? (
+            <div ref={titleRef} className="scroll-expand__title">
+              {title}
+            </div>
+          ) : null}
+          {scrollHint ? (
+            <div ref={hintRef} className="scroll-expand__hint">
+              {scrollHint}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ScrollExpand;
+
+```
+
+### Component CSS
+```css
+.scroll-expand {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-expand--scroller {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+}
+
+.scroll-expand--scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-expand__track {
+  position: relative;
+  width: 100%;
+}
+
+.scroll-expand__stage {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+  --se-title-size: 4rem;
+}
+
+.scroll-expand__frame {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(21% 29% 21% 29% round 24px);
+  will-change: clip-path;
+}
+
+.scroll-expand__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.scroll-expand__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.1) 45%, rgba(0, 0, 0, 0.35));
+  opacity: 0;
+}
+
+.scroll-expand__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6%;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.scroll-expand__title {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 6%;
+  text-align: center;
+  font-size: var(--se-title-size);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.scroll-expand__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.25rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+```
+
+### Integration Instructions
+1. Install any listed dependencies.
+2. Copy the component source into the appropriate directory in the project.
+3. Import the CSS file alongside the component.
+4. Import and render the component using the usage example above as a starting point.
+5. Adjust props as needed for the specific use case — refer to the props table for all available options.
+
+### More from React Bits
+The full library index, including everything reactbits.dev offers, is at https://reactbits.dev/llms.txt — fetch it if this component is not the right fit or the project needs more pieces.
+ctbits.dev offers, is at https://reactbits.dev/llms.txt — fetch it if this component is not the right fit or the project needs more pieces.
